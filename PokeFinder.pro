@@ -58,7 +58,8 @@ FORMS += \
     Forms/ProfileManager/ProfileManager3NewEdit.ui \
     Forms/Util/IVtoPID.ui \
     Forms/Util/Researcher.ui \
-    Forms/MainWindow.ui
+    Forms/MainWindow.ui \
+    Forms/Util/Timer.ui
 
 HEADERS += \
     Forms/Controls/IVFilter.hpp \
@@ -113,7 +114,8 @@ HEADERS += \
     Models/Gen3/Stationary3Model.hpp \
     Models/Gen3/Wild3Model.hpp \
     Models/ResearcherModel.hpp \
-    Util/ResearcherFrame.hpp
+    Util/ResearcherFrame.hpp \
+    Forms/Util/Timer.hpp
 
 SOURCES += \
     Forms/Controls/IVFilter.cpp \
@@ -160,4 +162,5 @@ SOURCES += \
     Models/Gen3/Wild3Model.cpp \
     Models/ResearcherModel.cpp \
     Util/ResearcherFrame.cpp \
-    main.cpp
+    main.cpp \
+    Forms/Util/Timer.cpp
