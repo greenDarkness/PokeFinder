@@ -22,6 +22,7 @@
 
 #include <QTableView>
 #include <QHeaderView>
+#include <QResizeEvent>
 
 class TableView : public QTableView
 {
