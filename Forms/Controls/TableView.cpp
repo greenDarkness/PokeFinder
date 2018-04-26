@@ -23,22 +23,16 @@ void TableView::resizeEvent(QResizeEvent *event)
 {
     QTableView::resizeEvent(event);
 
-    int h = event->size().height() - event->oldSize().height();
-    h = h > 0 ? h : h * -1;
+    QHeaderView *header = horizontalHeader();
+    header->setSectionResizeMode(QHeaderView::Stretch);
+    int *width = new int[header->count()];
 
-    if (h > 15 || h < 5)
+    for (int column = 0; column < header->count(); column++)
     {
-        QHeaderView *header = horizontalHeader();
-        header->setSectionResizeMode(QHeaderView::Stretch);
-        int *width = new int[header->count()];
-
-        for (int column = 0; column < header->count(); column++)
-        {
-            width[column] = header->sectionSize(column);
-            header->setSectionResizeMode(column, QHeaderView::Interactive);
-            header->resizeSection(column, width[column]);
-        }
-
-        delete[] width;
+        width[column] = header->sectionSize(column);
+        header->setSectionResizeMode(column, QHeaderView::Interactive);
+        header->resizeSection(column, width[column]);
     }
+
+    delete[] width;
 }
