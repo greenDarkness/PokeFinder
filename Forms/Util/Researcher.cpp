@@ -59,6 +59,7 @@ void Researcher::on_pushButtonGenerate32Bit_clicked()
 
     model->clear();
     model->setFlag(rng64Bit);
+    resizeHeader();
 
     u64 seed = ui->textBoxSeed->text().toULongLong(NULL, 16);
     u32 maxFrames = ui->textBoxMaxFrames->text().toUInt(NULL, 10);
@@ -290,8 +291,19 @@ void Researcher::on_pushButtonGenerate32Bit_clicked()
     model->setHex(getHexCheck());
     model->setModel(frames);
 
+    // Tweak size of the bigger columns
+    int *width = new int[rng64Bit ? 3 : 1];
+    for (int i = 1; i < (rng64Bit ? 4 : 2); i++)
+    {
+        ui->tableView->horizontalHeader()->setSectionResizeMode(i, QHeaderView::ResizeToContents);
+        width[i - 1] = ui->tableView->horizontalHeader()->sectionSize(i);
+        ui->tableView->horizontalHeader()->setSectionResizeMode(i, QHeaderView::Interactive);
+        ui->tableView->horizontalHeader()->resizeSection(i, width[i - 1]);
+    }
+
     delete rng;
     delete rng64;
+    delete[] width;
 }
 
 void Researcher::on_pushButtonSearch_clicked()
@@ -406,8 +418,7 @@ u64 Researcher::getCustom(QString text, ResearcherFrame frame, vector<Researcher
 void Researcher::setupModels()
 {
     ui->tableView->setModel(model);
-    ui->tableView->verticalHeader()->setVisible(false);
-    ui->tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    resizeHeader();
 
     ui->textBoxStartingFrame->setValues(1, 0, true);
     ui->textBoxMaxFrames->setValues(1, 0, true);
@@ -466,6 +477,19 @@ void Researcher::translate()
     keys[tr("Previous 7")] = 21;
     keys[tr("Previous 8")] = 22;
     keys[tr("Previous 9")] = 23;
+}
+
+void Researcher::resizeHeader()
+{
+    ui->tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    int *width = new int[model->columnCount()];
+
+    for (int column = 0; column < model->columnCount(); column++)
+    {
+        width[column] = ui->tableView->horizontalHeader()->sectionSize(column);
+        ui->tableView->horizontalHeader()->setSectionResizeMode(column, QHeaderView::Interactive);
+        ui->tableView->horizontalHeader()->resizeSection(column, width[column]);
+    }
 }
 
 vector<bool> Researcher::getHexCheck()
