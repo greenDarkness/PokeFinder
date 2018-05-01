@@ -25,14 +25,11 @@ void TableView::resizeEvent(QResizeEvent *event)
 
     QHeaderView *header = horizontalHeader();
     header->setSectionResizeMode(QHeaderView::Stretch);
-    int *width = new int[header->count()];
 
     for (int column = 0; column < header->count(); column++)
     {
-        width[column] = header->sectionSize(column);
+        int width = header->sectionSize(column);
         header->setSectionResizeMode(column, QHeaderView::Interactive);
-        header->resizeSection(column, width[column]);
+        header->resizeSection(column, width);
     }
-
-    delete[] width;
 }
