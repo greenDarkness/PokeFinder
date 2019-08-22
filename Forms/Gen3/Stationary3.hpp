@@ -1,6 +1,6 @@
 /*
  * This file is part of PokéFinder
- * Copyright (C) 2017 by Admiral_Fish, bumba, and EzPzStreamz
+ * Copyright (C) 2017-2019 by Admiral_Fish, bumba, and EzPzStreamz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,91 +20,57 @@
 #ifndef STATIONARY3_H
 #define STATIONARY3_H
 
-#include <PokeFinderCore/Gen3/Frame3.hpp>
-#include <PokeFinderCore/Gen3/Generator3.hpp>
-#include <PokeFinderCore/Gen3/Searcher3.hpp>
-#include <PokeFinderCore/Objects/FrameCompare.hpp>
-#include <PokeFinderCore/Objects/Nature.hpp>
-#include <PokeFinderCore/Objects/Power.hpp>
-#include <PokeFinderCore/Gen3/Profile3.hpp>
-#include <Forms/Gen3/ProfileManager3.hpp>
-#include <Models/Gen3/Stationary3Model.hpp>
-#include <Models/Gen3/Searcher3Model.hpp>
-#include <PokeFinderCore/Translator.hpp>
-#include <Forms/Gen3/SeedToTime3.hpp>
-#include <thread>
 #include <QMenu>
-#include <QAction>
-#include <QModelIndex>
-#include <QFileDialog>
-#include <QClipboard>
-#include <QSettings>
+#include <Core/Gen3/Profile3.hpp>
+#include <Models/Gen3/Searcher3Model.hpp>
+#include <Models/Gen3/Stationary3Model.hpp>
 
 namespace Ui
 {
     class Stationary3;
 }
 
-class Stationary3 : public QMainWindow
+class Stationary3 : public QWidget
 {
     Q_OBJECT
 
-protected:
-    void changeEvent(QEvent *);
-
 signals:
-    void updateView(vector<Frame3>);
     void alertProfiles(int);
-    void updateProgress();
+
+public:
+    explicit Stationary3(QWidget *parent = nullptr);
+    ~Stationary3() override;
+    void updateProfiles();
 
 private:
     Ui::Stationary3 *ui;
-    Searcher3Model *s = new Searcher3Model(this, Method1);
-    Stationary3Model *g = new Stationary3Model(this);
-    bool isSearching = false;
-    bool cancel = false;
-    u32 progress;
-    vector<Profile3> profiles;
-    QMenu *generatorMenu = new QMenu();
-    QMenu *searcherMenu = new QMenu();
+    Searcher3Model *searcherModel{};
+    Stationary3Model *generatorModel{};
+    QVector<Profile3> profiles;
+    QMenu *generatorMenu{};
+    QMenu *searcherMenu{};
     QModelIndex lastIndex;
     QModelIndex targetFrame;
 
     void setupModels();
-    void search();
-    void updateSearch();
 
 public slots:
-    void moveResults(QString seed, QString method, u32 hp, u32 atk, u32 def, u32 spa, u32 spd, u32 spe);
+    void moveResults(const QString &seed, const QString &method, u8 hp, u8 atk, u8 def, u8 spa, u8 spd, u8 spe);
 
 private slots:
-    void on_generate_clicked();
+    void updateProgress(const QVector<Frame3> &frames, int progress);
     void refreshProfiles();
     void on_comboBoxProfiles_currentIndexChanged(int index);
-    void on_anyNatureGenerator_clicked();
-    void on_anyHiddenPowerGenerator_clicked();
-    void on_checkBoxDelayGenerator_clicked();
-    void on_search_clicked();
-    void on_anyNatureSearcher_clicked();
-    void on_anyHiddenPowerSearcher_clicked();
-    void updateViewSearcher(vector<Frame3> frames);
-    void on_comboBoxMethodSearcher_currentIndexChanged(int index);
+    void on_pushButtonGenerate_clicked();
+    void on_pushButtonSearch_clicked();
     void on_tableViewGenerator_customContextMenuRequested(const QPoint &pos);
+    void on_tableViewSearcher_customContextMenuRequested(const QPoint &pos);
     void setTargetFrameGenerator();
     void jumpToTargetGenerator();
     void centerFramesAndSetTargetGenerator(u32 centerFrames);
     void seedToTime();
-    void outputToTxt();
-    void outputToCSV();
-    void on_tableViewSearcher_customContextMenuRequested(const QPoint &pos);
     void copySeedToClipboard();
-    void updateProgressBar();
     void on_pushButtonProfileManager_clicked();
-
-public:
-    explicit Stationary3(QWidget *parent = 0);
-    ~Stationary3();
-    void updateProfiles();
 
 };
 

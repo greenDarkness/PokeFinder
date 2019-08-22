@@ -1,6 +1,6 @@
 /*
  * This file is part of PokéFinder
- * Copyright (C) 2017 by Admiral_Fish, bumba, and EzPzStreamz
+ * Copyright (C) 2017-2019 by Admiral_Fish, bumba, and EzPzStreamz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,46 +20,34 @@
 #ifndef RESEARCHER_HPP
 #define RESEARCHER_HPP
 
-#include <QMainWindow>
 #include <QMessageBox>
-#include <QStandardItemModel>
-#include <vector>
-#include <unordered_map>
-#include <PokeFinderCore/RNG/LCRNG.hpp>
-#include <PokeFinderCore/RNG/LCRNG64.hpp>
-#include <PokeFinderCore/RNG/MTRNG.hpp>
-#include <PokeFinderCore/RNG/SFMT.hpp>
-#include <PokeFinderCore/RNG/TinyMT.hpp>
-#include <Models/ResearcherModel.hpp>
-#include <Util/ResearcherFrame.hpp>
+#include <Models/Util/ResearcherModel.hpp>
 
-using std::vector;
-typedef uint32_t u32;
-typedef uint64_t u64;
-typedef u64 (*func)(u64, u64);
-typedef QMap<QString, func> Calculator;
+using func = u64 (*)(u64, u64);
+using Calculator = QHash<QString, func>;
 
 namespace Ui
 {
     class Researcher;
 }
 
-class Researcher : public QMainWindow
+class Researcher : public QWidget
 {
     Q_OBJECT
 
-protected:
-    void changeEvent(QEvent *);
+public:
+    explicit Researcher(QWidget *parent = nullptr);
+    ~Researcher() override;;
 
 private:
     Ui::Researcher *ui;
-    ResearcherModel *model = new ResearcherModel(this, false);
-    QMap<QString, int> keys;
+    ResearcherModel *model{};
+    QHash<QString, u8> keys;
 
-    u64 getCustom(QString text, ResearcherFrame frame, vector<ResearcherFrame> frames);
     void setupModels();
-    void translate();
-    vector<bool> getHexCheck();
+    u64 getCustom(const QString &text, const ResearcherFrame &frame, const QVector<ResearcherFrame> &frames);
+    void resizeHeader();
+    QVector<bool> getHexCheck();
     static inline u64 divide(u64 x, u64 y) { return y == 0 ? 0 : x / y; }
     static inline u64 modulo(u64 x, u64 y) { return x % y; }
     static inline u64 shiftRight(u64 x, u64 y) { return x >> y; }
@@ -76,10 +64,6 @@ private slots:
     void on_rngSelection_currentChanged(int index);
     void on_pushButtonSearch_clicked();
     void on_pushButtonNext_clicked();
-
-public:
-    explicit Researcher(QWidget *parent = 0);
-    ~Researcher();
 
 };
 

@@ -1,6 +1,6 @@
 /*
  * This file is part of PokéFinder
- * Copyright (C) 2017 by Admiral_Fish, bumba, and EzPzStreamz
+ * Copyright (C) 2017-2019 by Admiral_Fish, bumba, and EzPzStreamz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -18,33 +18,13 @@
  */
 
 #include "Searcher4Model.hpp"
+#include <Util/TableUtility.hpp>
 
-Searcher4Model::Searcher4Model(QObject *parent, Method method) : QAbstractTableModel(parent)
+Searcher4Model::Searcher4Model(QObject *parent, Method method, bool stationary) :
+    TableModel<Frame4>(parent)
 {
     this->method = method;
-}
-
-void Searcher4Model::setModel(vector<Frame4> frames)
-{
-    model = frames;
-}
-
-void Searcher4Model::addItems(vector<Frame4> frames)
-{
-    int i = rowCount();
-    emit beginInsertRows(QModelIndex(), i, i + frames.size() - 1);
-    model.insert(model.end(), frames.begin(), frames.end());
-    emit endInsertRows();
-}
-
-void Searcher4Model::clear()
-{
-    if (model.empty())
-        return;
-    emit beginRemoveRows(QModelIndex(), 0, rowCount() - 1);
-    model.clear();
-    model.shrink_to_fit();
-    emit endRemoveRows();
+    this->stationary = stationary;
 }
 
 void Searcher4Model::setMethod(Method method)
@@ -55,585 +35,335 @@ void Searcher4Model::setMethod(Method method)
 
 void Searcher4Model::sort(int column, Qt::SortOrder order)
 {
-    if (model.empty())
-        return;
-
-    emit layoutAboutToBeChanged();
-
-    if (order == Qt::AscendingOrder)
+    if (!model.empty())
     {
+        emit layoutAboutToBeChanged();
+        bool flag = order == Qt::AscendingOrder;
+        bool stat = stationary;
+
         switch (method)
         {
-            case Method1:
-            case ChainedShiny:
+            case Method::Method1:
+            case Method::ChainedShiny:
                 switch (column)
                 {
                     case 0:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
+                        std::sort(model.begin(), model.end(), [flag] (const Frame4 & frame1, const Frame4 & frame2)
                         {
-                            return frame1.seed < frame2.seed;
+                            return flag ? frame1.getSeed() < frame2.getSeed() : frame1.getSeed() > frame2.getSeed();
                         });
                         break;
                     case 1:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
+                        std::sort(model.begin(), model.end(), [flag] (const Frame4 & frame1, const Frame4 & frame2)
                         {
-                            return frame1.frame < frame2.frame;
+                            return flag ? frame1.getFrame() < frame2.getFrame() : frame1.getFrame() > frame1.getFrame();
                         });
                         break;
                     case 2:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
+                        std::sort(model.begin(), model.end(), [flag] (const Frame4 & frame1, const Frame4 & frame2)
                         {
-                            return frame1.pid < frame2.pid;
+                            return flag ? frame1.getPID() < frame2.getPID() : frame1.getPID() > frame2.getPID();
                         });
                         break;
                     case 3:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
+                        std::sort(model.begin(), model.end(), [flag] (const Frame4 & frame1, const Frame4 & frame2)
                         {
-                            return frame1.shiny < frame2.shiny;
+                            return flag ? frame1.getShiny() < frame2.getShiny() : frame1.getShiny() > frame2.getShiny();
                         });
                         break;
                     case 4:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
+                        std::sort(model.begin(), model.end(), [flag] (const Frame4 & frame1, const Frame4 & frame2)
                         {
-                            return frame1.nature < frame2.nature;
+                            return flag ? frame1.getNature() < frame2.getNature() : frame1.getNature() > frame2.getNature();
                         });
                         break;
                     case 5:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
+                        std::sort(model.begin(), model.end(), [flag] (const Frame4 & frame1, const Frame4 & frame2)
                         {
-                            return frame1.ability < frame2.ability;
+                            return flag ? frame1.getAbility() < frame2.getAbility() : frame1.getAbility() > frame2.getAbility();
                         });
                         break;
                     case 6:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
+                        std::sort(model.begin(), model.end(), [flag] (const Frame4 & frame1, const Frame4 & frame2)
                         {
-                            return frame1.ivs[0] < frame2.ivs[0];
+                            return flag ? frame1.getIV(0) < frame2.getIV(0) : frame1.getIV(0) > frame2.getIV(0);
                         });
                         break;
                     case 7:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
+                        std::sort(model.begin(), model.end(), [flag] (const Frame4 & frame1, const Frame4 & frame2)
                         {
-                            return frame1.ivs[1] < frame2.ivs[1];
+                            return flag ? frame1.getIV(1) < frame2.getIV(1) : frame1.getIV(1) > frame2.getIV(1);
                         });
                         break;
                     case 8:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
+                        std::sort(model.begin(), model.end(), [flag] (const Frame4 & frame1, const Frame4 & frame2)
                         {
-                            return frame1.ivs[2] < frame2.ivs[2];
+                            return flag ? frame1.getIV(2) < frame2.getIV(2) : frame1.getIV(2) > frame2.getIV(2);
                         });
                         break;
                     case 9:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
+                        std::sort(model.begin(), model.end(), [flag] (const Frame4 & frame1, const Frame4 & frame2)
                         {
-                            return frame1.ivs[3] < frame2.ivs[3];
+                            return flag ? frame1.getIV(3) < frame2.getIV(3) : frame1.getIV(3) > frame2.getIV(3);
                         });
                         break;
                     case 10:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
+                        std::sort(model.begin(), model.end(), [flag] (const Frame4 & frame1, const Frame4 & frame2)
                         {
-                            return frame1.ivs[4] < frame2.ivs[4];
+                            return flag ? frame1.getIV(4) < frame2.getIV(4) : frame1.getIV(4) > frame2.getIV(4);
                         });
                         break;
                     case 11:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
+                        std::sort(model.begin(), model.end(), [flag] (const Frame4 & frame1, const Frame4 & frame2)
                         {
-                            return frame1.ivs[5] < frame2.ivs[5];
+                            return flag ? frame1.getIV(5) < frame2.getIV(5) : frame1.getIV(5) > frame2.getIV(5);
                         });
                         break;
                     case 12:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
+                        std::sort(model.begin(), model.end(), [flag] (const Frame4 & frame1, const Frame4 & frame2)
                         {
-                            return frame1.hidden < frame2.hidden;
+                            return flag ? frame1.getHidden() < frame2.getHidden() : frame1.getHidden() > frame2.getHidden();
                         });
                         break;
                     case 13:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
+                        std::sort(model.begin(), model.end(), [flag] (const Frame4 & frame1, const Frame4 & frame2)
                         {
-                            return frame1.power < frame2.power;
+                            return flag ? frame1.getPower() < frame2.getPower() : frame1.getPower() > frame2.getPower();
                         });
                         break;
                     case 14:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
+                        std::sort(model.begin(), model.end(), [flag] (const Frame4 & frame1, const Frame4 & frame2)
                         {
-                            return frame1.gender < frame2.gender;
+                            return flag ? frame1.getGender() < frame2.getGender() : frame1.getGender() > frame2.getGender();
                         });
                         break;
                 }
                 break;
-            case WondercardIVs:
+            case Method::WondercardIVs:
                 switch (column)
                 {
                     case 0:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
+                        std::sort(model.begin(), model.end(), [flag] (const Frame4 & frame1, const Frame4 & frame2)
                         {
-                            return frame1.seed < frame2.seed;
+                            return flag ? frame1.getSeed() < frame2.getSeed() : frame1.getSeed() > frame2.getSeed();
                         });
                         break;
                     case 1:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
+                        std::sort(model.begin(), model.end(), [flag] (const Frame4 & frame1, const Frame4 & frame2)
                         {
-                            return frame1.frame < frame2.frame;
+                            return flag ? frame1.getFrame() < frame2.getFrame() : frame1.getFrame() > frame1.getFrame();
                         });
                         break;
                     case 2:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
+                        std::sort(model.begin(), model.end(), [flag] (const Frame4 & frame1, const Frame4 & frame2)
                         {
-                            return frame1.ivs[0] < frame2.ivs[0];
+                            return flag ? frame1.getIV(0) < frame2.getIV(0) : frame1.getIV(0) > frame2.getIV(0);
                         });
                         break;
                     case 3:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
+                        std::sort(model.begin(), model.end(), [flag] (const Frame4 & frame1, const Frame4 & frame2)
                         {
-                            return frame1.ivs[1] < frame2.ivs[1];
+                            return flag ? frame1.getIV(1) < frame2.getIV(1) : frame1.getIV(1) > frame2.getIV(1);
                         });
                         break;
                     case 4:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
+                        std::sort(model.begin(), model.end(), [flag] (const Frame4 & frame1, const Frame4 & frame2)
                         {
-                            return frame1.ivs[2] < frame2.ivs[2];
+                            return flag ? frame1.getIV(2) < frame2.getIV(2) : frame1.getIV(2) > frame2.getIV(2);
                         });
                         break;
                     case 5:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
+                        std::sort(model.begin(), model.end(), [flag] (const Frame4 & frame1, const Frame4 & frame2)
                         {
-                            return frame1.ivs[3] < frame2.ivs[3];
+                            return flag ? frame1.getIV(3) < frame2.getIV(3) : frame1.getIV(3) > frame2.getIV(3);
                         });
                         break;
                     case 6:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
+                        std::sort(model.begin(), model.end(), [flag] (const Frame4 & frame1, const Frame4 & frame2)
                         {
-                            return frame1.ivs[4] < frame2.ivs[4];
+                            return flag ? frame1.getIV(4) < frame2.getIV(4) : frame1.getIV(4) > frame2.getIV(4);
                         });
                         break;
                     case 7:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
+                        std::sort(model.begin(), model.end(), [flag] (const Frame4 & frame1, const Frame4 & frame2)
                         {
-                            return frame1.ivs[5] < frame2.ivs[5];
+                            return flag ? frame1.getIV(5) < frame2.getIV(5) : frame1.getIV(5) > frame2.getIV(5);
                         });
                         break;
                     case 8:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
+                        std::sort(model.begin(), model.end(), [flag] (const Frame4 & frame1, const Frame4 & frame2)
                         {
-                            return frame1.hidden < frame2.hidden;
+                            return flag ? frame1.getHidden() < frame2.getHidden() : frame1.getHidden() > frame2.getHidden();
                         });
                         break;
                     case 9:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
+                        std::sort(model.begin(), model.end(), [flag] (const Frame4 & frame1, const Frame4 & frame2)
                         {
-                            return frame1.power < frame2.power;
+                            return flag ? frame1.getPower() < frame2.getPower() : frame1.getPower() > frame2.getPower();
                         });
                         break;
                 }
                 break;
-            case MethodJ:
-            case MethodK:
+            case Method::MethodJ:
+            case Method::MethodK:
                 switch (column)
                 {
                     case 0:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
+                        std::sort(model.begin(), model.end(), [flag] (const Frame4 & frame1, const Frame4 & frame2)
                         {
-                            return frame1.seed < frame2.seed;
+                            return flag ? frame1.getSeed() < frame2.getSeed() : frame1.getSeed() > frame2.getSeed();
                         });
                         break;
                     case 1:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
+                        std::sort(model.begin(), model.end(), [flag] (const Frame4 & frame1, const Frame4 & frame2)
                         {
-                            return frame1.frame < frame2.frame;
+                            return flag ? frame1.getFrame() < frame2.getFrame() : frame1.getFrame() > frame2.getFrame();
                         });
                         break;
                     case 2:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
+                        std::sort(model.begin(), model.end(), [flag] (const Frame4 & frame1, const Frame4 & frame2)
                         {
-                            return frame1.leadType < frame2.leadType;
+                            return flag ? frame1.getLeadType() < frame2.getLeadType() : frame1.getLeadType() > frame2.getLeadType();
                         });
                         break;
                     case 3:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
+                        std::sort(model.begin(), model.end(), [flag] (const Frame4 & frame1, const Frame4 & frame2)
                         {
-                            return frame1.pid < frame2.pid;
+                            return flag ? frame1.getPID() < frame2.getPID() : frame1.getPID() > frame2.getPID();
                         });
                         break;
                     case 4:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
+                        std::sort(model.begin(), model.end(), [flag, stat] (const Frame4 & frame1, const Frame4 & frame2)
                         {
-                            return frame1.encounterSlot < frame2.encounterSlot;
+                            return stat ?
+                                   flag ? frame1.getShiny() < frame2.getShiny() : frame1.getShiny() > frame2.getShiny() :
+                                   flag ? frame1.getEncounterSlot() < frame2.getEncounterSlot() : frame1.getEncounterSlot() > frame2.getEncounterSlot();
                         });
                         break;
                     case 5:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
+                        std::sort(model.begin(), model.end(), [flag, stat] (const Frame4 & frame1, const Frame4 & frame2)
                         {
-                            return frame1.shiny < frame2.shiny;
+                            return stat ?
+                                   flag ? frame1.getNature() < frame2.getNature() : frame1.getNature() > frame2.getNature() :
+                                   flag ? frame1.getLevel() < frame2.getLevel() : frame1.getLevel() > frame2.getLevel();
                         });
                         break;
                     case 6:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
+                        std::sort(model.begin(), model.end(), [flag, stat] (const Frame4 & frame1, const Frame4 & frame2)
                         {
-                            return frame1.nature < frame2.nature;
+                            return stat ?
+                                   flag ? frame1.getAbility() < frame2.getAbility() : frame1.getAbility() > frame2.getAbility() :
+                                   flag ? frame1.getShiny() < frame2.getShiny() : frame1.getShiny() > frame2.getShiny();
                         });
                         break;
                     case 7:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
+                        std::sort(model.begin(), model.end(), [flag, stat] (const Frame4 & frame1, const Frame4 & frame2)
                         {
-                            return frame1.ability < frame2.ability;
+                            return stat ?
+                                   flag ? frame1.getIV(0) < frame2.getIV(0) : frame1.getIV(0) > frame2.getIV(0) :
+                                   flag ? frame1.getNature() < frame2.getNature() : frame1.getNature() > frame2.getNature();
                         });
                         break;
                     case 8:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
+                        std::sort(model.begin(), model.end(), [flag, stat] (const Frame4 & frame1, const Frame4 & frame2)
                         {
-                            return frame1.ivs[0] < frame2.ivs[0];
+                            return stat ?
+                                   flag ? frame1.getIV(1) < frame2.getIV(1) : frame1.getIV(1) > frame2.getIV(1) :
+                                   flag ? frame1.getAbility() < frame2.getAbility() : frame1.getAbility() > frame2.getAbility();
                         });
                         break;
                     case 9:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
+                        std::sort(model.begin(), model.end(), [flag, stat] (const Frame4 & frame1, const Frame4 & frame2)
                         {
-                            return frame1.ivs[1] < frame2.ivs[1];
+                            return stat ?
+                                   flag ? frame1.getIV(2) < frame2.getIV(2) : frame1.getIV(2) > frame2.getIV(2) :
+                                   flag ? frame1.getIV(0) < frame2.getIV(0) : frame1.getIV(0) > frame2.getIV(0);
                         });
                         break;
                     case 10:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
+                        std::sort(model.begin(), model.end(), [flag, stat] (const Frame4 & frame1, const Frame4 & frame2)
                         {
-                            return frame1.ivs[2] < frame2.ivs[2];
+                            return stat ?
+                                   flag ? frame1.getIV(3) < frame2.getIV(3) : frame1.getIV(3) > frame2.getIV(3) :
+                                   flag ? frame1.getIV(1) < frame2.getIV(1) : frame1.getIV(1) > frame2.getIV(1);
                         });
                         break;
                     case 11:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
+                        std::sort(model.begin(), model.end(), [flag, stat] (const Frame4 & frame1, const Frame4 & frame2)
                         {
-                            return frame1.ivs[3] < frame2.ivs[3];
+                            return stat ?
+                                   flag ? frame1.getIV(4) < frame2.getIV(4) : frame1.getIV(4) > frame2.getIV(4) :
+                                   flag ? frame1.getIV(2) < frame2.getIV(2) : frame1.getIV(2) > frame2.getIV(2);
                         });
                         break;
                     case 12:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
+                        std::sort(model.begin(), model.end(), [flag, stat] (const Frame4 & frame1, const Frame4 & frame2)
                         {
-                            return frame1.ivs[4] < frame2.ivs[4];
+                            return stat ?
+                                   flag ? frame1.getIV(5) < frame2.getIV(5) : frame1.getIV(5) > frame2.getIV(5) :
+                                   flag ? frame1.getIV(3) < frame2.getIV(3) : frame1.getIV(3) > frame2.getIV(3);
                         });
                         break;
                     case 13:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
+                        std::sort(model.begin(), model.end(), [flag, stat] (const Frame4 & frame1, const Frame4 & frame2)
                         {
-                            return frame1.ivs[5] < frame2.ivs[5];
+                            return stat ?
+                                   flag ? frame1.getHidden() < frame2.getHidden() : frame1.getHidden() > frame2.getHidden() :
+                                   flag ? frame1.getIV(4) < frame2.getIV(4) : frame1.getIV(4) > frame2.getIV(4);
                         });
                         break;
                     case 14:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
+                        std::sort(model.begin(), model.end(), [flag, stat] (const Frame4 & frame1, const Frame4 & frame2)
                         {
-                            return frame1.hidden < frame2.hidden;
+                            return stat ?
+                                   flag ? frame1.getPower() < frame2.getPower() : frame1.getPower() > frame2.getPower() :
+                                   flag ? frame1.getIV(5) < frame2.getIV(5) : frame1.getIV(5) > frame2.getIV(5);
                         });
                         break;
                     case 15:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
+                        std::sort(model.begin(), model.end(), [flag, stat] (const Frame4 & frame1, const Frame4 & frame2)
                         {
-                            return frame1.power < frame2.power;
+                            return stat ?
+                                   flag ? frame1.getGender() < frame2.getGender() : frame1.getGender() > frame2.getGender() :
+                                   flag ? frame1.getHidden() < frame2.getHidden() : frame1.getHidden() > frame2.getHidden();
                         });
                         break;
                     case 16:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
+                        std::sort(model.begin(), model.end(), [flag] (const Frame4 & frame1, const Frame4 & frame2)
                         {
-                            return frame1.gender < frame2.gender;
+                            return flag ? frame1.getPower() < frame2.getPower() : frame1.getPower() > frame2.getPower();
+                        });
+                        break;
+                    case 17:
+                        std::sort(model.begin(), model.end(), [flag] (const Frame4 & frame1, const Frame4 & frame2)
+                        {
+                            return flag ? frame1.getGender() < frame2.getGender() : frame1.getGender() > frame2.getGender();
                         });
                         break;
                 }
+                break;
+            default:
                 break;
         }
-    }
-    else
-    {
-        switch (method)
-        {
-            case Method1:
-            case ChainedShiny:
-                switch (column)
-                {
-                    case 0:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
-                        {
-                            return frame1.seed > frame2.seed;
-                        });
-                        break;
-                    case 1:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
-                        {
-                            return frame1.frame > frame2.frame;
-                        });
-                        break;
-                    case 2:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
-                        {
-                            return frame1.pid > frame2.pid;
-                        });
-                        break;
-                    case 3:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
-                        {
-                            return frame1.shiny > frame2.shiny;
-                        });
-                        break;
-                    case 4:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
-                        {
-                            return frame1.nature > frame2.nature;
-                        });
-                        break;
-                    case 5:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
-                        {
-                            return frame1.ability > frame2.ability;
-                        });
-                        break;
-                    case 6:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
-                        {
-                            return frame1.ivs[0] > frame2.ivs[0];
-                        });
-                        break;
-                    case 7:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
-                        {
-                            return frame1.ivs[1] > frame2.ivs[1];
-                        });
-                        break;
-                    case 8:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
-                        {
-                            return frame1.ivs[2] > frame2.ivs[2];
-                        });
-                        break;
-                    case 9:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
-                        {
-                            return frame1.ivs[3] > frame2.ivs[3];
-                        });
-                        break;
-                    case 10:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
-                        {
-                            return frame1.ivs[4] > frame2.ivs[4];
-                        });
-                        break;
-                    case 11:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
-                        {
-                            return frame1.ivs[5] > frame2.ivs[5];
-                        });
-                        break;
-                    case 12:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
-                        {
-                            return frame1.hidden > frame2.hidden;
-                        });
-                        break;
-                    case 13:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
-                        {
-                            return frame1.power > frame2.power;
-                        });
-                        break;
-                    case 14:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
-                        {
-                            return frame1.gender > frame2.gender;
-                        });
-                        break;
-                }
-                break;
-            case WondercardIVs:
-                switch (column)
-                {
-                    case 0:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
-                        {
-                            return frame1.seed > frame2.seed;
-                        });
-                        break;
-                    case 1:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
-                        {
-                            return frame1.frame > frame2.frame;
-                        });
-                        break;
-                    case 2:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
-                        {
-                            return frame1.ivs[0] > frame2.ivs[0];
-                        });
-                        break;
-                    case 3:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
-                        {
-                            return frame1.ivs[1] > frame2.ivs[1];
-                        });
-                        break;
-                    case 4:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
-                        {
-                            return frame1.ivs[2] > frame2.ivs[2];
-                        });
-                        break;
-                    case 5:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
-                        {
-                            return frame1.ivs[3] > frame2.ivs[3];
-                        });
-                        break;
-                    case 6:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
-                        {
-                            return frame1.ivs[4] > frame2.ivs[4];
-                        });
-                        break;
-                    case 7:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
-                        {
-                            return frame1.ivs[5] > frame2.ivs[5];
-                        });
-                        break;
-                    case 8:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
-                        {
-                            return frame1.hidden > frame2.hidden;
-                        });
-                        break;
-                    case 9:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
-                        {
-                            return frame1.power > frame2.power;
-                        });
-                        break;
-                }
-                break;
-            case MethodJ:
-            case MethodK:
-                switch (column)
-                {
-                    case 0:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
-                        {
-                            return frame1.seed > frame2.seed;
-                        });
-                        break;
-                    case 1:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
-                        {
-                            return frame1.frame > frame2.frame;
-                        });
-                        break;
-                    case 2:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
-                        {
-                            return frame1.leadType > frame2.leadType;
-                        });
-                        break;
-                    case 3:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
-                        {
-                            return frame1.pid > frame2.pid;
-                        });
-                        break;
-                    case 4:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
-                        {
-                            return frame1.encounterSlot > frame2.encounterSlot;
-                        });
-                        break;
-                    case 5:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
-                        {
-                            return frame1.shiny > frame2.shiny;
-                        });
-                        break;
-                    case 6:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
-                        {
-                            return frame1.nature > frame2.nature;
-                        });
-                        break;
-                    case 7:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
-                        {
-                            return frame1.ability > frame2.ability;
-                        });
-                        break;
-                    case 8:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
-                        {
-                            return frame1.ivs[0] > frame2.ivs[0];
-                        });
-                        break;
-                    case 9:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
-                        {
-                            return frame1.ivs[1] > frame2.ivs[1];
-                        });
-                        break;
-                    case 10:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
-                        {
-                            return frame1.ivs[2] > frame2.ivs[2];
-                        });
-                        break;
-                    case 11:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
-                        {
-                            return frame1.ivs[3] > frame2.ivs[3];
-                        });
-                        break;
-                    case 12:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
-                        {
-                            return frame1.ivs[4] > frame2.ivs[4];
-                        });
-                        break;
-                    case 13:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
-                        {
-                            return frame1.ivs[5] > frame2.ivs[5];
-                        });
-                        break;
-                    case 14:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
-                        {
-                            return frame1.hidden > frame2.hidden;
-                        });
-                        break;
-                    case 15:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
-                        {
-                            return frame1.power > frame2.power;
-                        });
-                        break;
-                    case 16:
-                        std::sort(model.begin(), model.end(), [] (const Frame4 & frame1, const Frame4 & frame2)
-                        {
-                            return frame1.gender > frame2.gender;
-                        });
-                        break;
-                }
-                break;
-        }
-    }
 
-    emit layoutChanged();
+        emit layoutChanged();
+    }
 }
 
-int Searcher4Model::rowCount(const QModelIndex &parent) const
+int Searcher4Model::columnCount(const QModelIndex & /*parent*/) const
 {
-    (void) parent;
-    return (int)model.size();
-}
-
-int Searcher4Model::columnCount(const QModelIndex &parent) const
-{
-    (void) parent;
     switch (method)
     {
-        case Method1:
-        case ChainedShiny:
+        case Method::Method1:
+        case Method::ChainedShiny:
             return 15;
-        case WondercardIVs:
+        case Method::WondercardIVs:
             return 10;
-        case MethodJ:
-        case MethodK:
+        case Method::MethodJ:
+        case Method::MethodK:
+            return stationary ? 16 : 18;
         default:
-            return 17;
+            return 0;
     }
 }
 
@@ -641,133 +371,227 @@ QVariant Searcher4Model::data(const QModelIndex &index, int role) const
 {
     if (role == Qt::DisplayRole)
     {
-        int row = index.row();
-        int column = index.column();
-        Frame4 frame = model[row];
+        auto frame = model.at(index.row());
         switch (method)
         {
-            case WondercardIVs:
-                switch (column)
+            case Method::WondercardIVs:
+                switch (index.column())
                 {
                     case 0:
-                        return QString::number(frame.seed, 16).toUpper().rightJustified(8, '0');
+                        return QString::number(frame.getSeed(), 16).toUpper().rightJustified(8, '0');
                     case 1:
-                        return frame.frame;
+                        return frame.getFrame();
                     case 2:
-                        return frame.ivs[0];
+                        return frame.getIV(0);
                     case 3:
-                        return frame.ivs[1];
+                        return frame.getIV(1);
                     case 4:
-                        return frame.ivs[2];
+                        return frame.getIV(2);
                     case 5:
-                        return frame.ivs[3];
+                        return frame.getIV(3);
                     case 6:
-                        return frame.ivs[4];
+                        return frame.getIV(4);
                     case 7:
-                        return frame.ivs[5];
+                        return frame.getIV(5);
                     case 8:
-                        return frame.getPower();
+                        return frame.getPowerString();
                     case 9:
-                        return frame.power;
+                        return frame.getPower();
                 }
                 break;
-            case Method1:
-            case ChainedShiny:
-                switch (column)
+            case Method::Method1:
+            case Method::ChainedShiny:
+                switch (index.column())
                 {
                     case 0:
-                        return QString::number(frame.seed, 16).toUpper().rightJustified(8, '0');
+                        return QString::number(frame.getSeed(), 16).toUpper().rightJustified(8, '0');
                     case 1:
-                        return frame.frame;
+                        return frame.getFrame();
                     case 2:
-                        return QString::number(frame.pid, 16).toUpper().rightJustified(8, '0');
+                        return QString::number(frame.getPID(), 16).toUpper().rightJustified(8, '0');
                     case 3:
-                        return frame.getShiny();
+                        return frame.getShinyString();
                     case 4:
-                        return frame.getNature();
+                        return frame.getNatureString();
                     case 5:
-                        return frame.ability;
+                        return frame.getAbility();
                     case 6:
-                        return frame.ivs[0];
+                        return frame.getIV(0);
                     case 7:
-                        return frame.ivs[1];
+                        return frame.getIV(1);
                     case 8:
-                        return frame.ivs[2];
+                        return frame.getIV(2);
                     case 9:
-                        return frame.ivs[3];
+                        return frame.getIV(3);
                     case 10:
-                        return frame.ivs[4];
+                        return frame.getIV(4);
                     case 11:
-                        return frame.ivs[5];
+                        return frame.getIV(5);
                     case 12:
-                        return frame.getPower();
+                        return frame.getPowerString();
                     case 13:
-                        return frame.power;
+                        return frame.getPower();
                     case 14:
-                        return frame.getGender();
+                        return frame.getGenderString();
 
                 }
                 break;
-            case MethodJ:
-            case MethodK:
-                switch (column)
+            case Method::MethodJ:
+            case Method::MethodK:
+                switch (index.column())
                 {
                     case 0:
-                        return QString::number(frame.seed, 16).toUpper().rightJustified(8, '0');
+                        return QString::number(frame.getSeed(), 16).toUpper().rightJustified(8, '0');
                     case 1:
-                        return frame.frame;
+                        return frame.getFrame();
                     case 2:
-                        switch (frame.leadType)
+                        switch (frame.getLeadType())
                         {
-                            case None:
+                            case Lead::None:
                                 return tr("None");
-                            case Synchronize:
+                            case Lead::Synchronize:
                                 return tr("Synchronize");
-                            case SuctionCups:
+                            case Lead::SuctionCups:
                                 return tr("Suction Cups");
-                            case CuteCharm25F:
-                            case CuteCharm50F:
-                            case CuteCharm75F:
-                            case CuteCharm125F:
+                            case Lead::CuteCharmFemale:
                                 return tr("Cute Charm (♀)");
-                            case CuteCharm25M:
-                                return tr("Cute Charm (25% ♂");
-                            case CuteCharm50M:
-                                return tr("Cute Charm (50% ♂");
-                            case CuteCharm75M:
-                                return tr("Cute Charm (75% ♂");
-                            case CuteCharm875M:
-                                return tr("Cute Charm (87.5% ♂");
+                            case Lead::CuteCharm25M:
+                                return tr("Cute Charm (25% ♂)");
+                            case Lead::CuteCharm50M:
+                                return tr("Cute Charm (50% ♂)");
+                            case Lead::CuteCharm75M:
+                                return tr("Cute Charm (75% ♂)");
+                            case Lead::CuteCharm875M:
+                            default:
+                                return tr("Cute Charm (87.5% ♂)");
                         }
                     case 3:
-                        return QString::number(frame.pid, 16).toUpper().rightJustified(8, '0');
+                        return QString::number(frame.getPID(), 16).toUpper().rightJustified(8, '0');
                     case 4:
-                        return frame.encounterSlot;
+                        if (stationary) return frame.getShinyString();
+                        return frame.getEncounterSlot();
                     case 5:
-                        return frame.getShiny();
+                        if (stationary) return frame.getNatureString();
+                        return frame.getLevel();
                     case 6:
-                        return frame.getNature();
+                        if (stationary) return frame.getAbility();
+                        return frame.getShinyString();
                     case 7:
-                        return frame.ability;
+                        if (stationary) return frame.getIV(0);
+                        return frame.getNatureString();
                     case 8:
-                        return frame.ivs[0];
+                        if (stationary) return frame.getIV(1);
+                        return frame.getAbility();
                     case 9:
-                        return frame.ivs[1];
+                        if (stationary) return frame.getIV(2);
+                        return frame.getIV(0);
                     case 10:
-                        return frame.ivs[2];
+                        if (stationary) return frame.getIV(3);
+                        return frame.getIV(1);
                     case 11:
-                        return frame.ivs[3];
+                        if (stationary) return frame.getIV(4);
+                        return frame.getIV(2);
                     case 12:
-                        return frame.ivs[4];
+                        if (stationary) return frame.getIV(5);
+                        return frame.getIV(3);
                     case 13:
-                        return frame.ivs[5];
+                        if (stationary) return frame.getPowerString();
+                        return frame.getIV(4);
                     case 14:
-                        return frame.getPower();
+                        if (stationary) return frame.getPower();
+                        return frame.getIV(5);
                     case 15:
-                        return frame.power;
+                        if (stationary) return frame.getGenderString();
+                        return frame.getPowerString();
                     case 16:
-                        return frame.getGender();
+                        return frame.getPower();
+                    case 17:
+                        return frame.getGenderString();
                 }
+                break;
+            default:
+                break;
+        }
+    }
+    else if (role == Qt::FontRole)
+    {
+        auto frame = model.at(index.row());
+        switch (method)
+        {
+            case Method::WondercardIVs:
+                switch (index.column())
+                {
+                    case 2:
+                        return TableUtility::getBold(frame.getIV(0));
+                    case 3:
+                        return TableUtility::getBold(frame.getIV(1));
+                    case 4:
+                        return TableUtility::getBold(frame.getIV(2));
+                    case 5:
+                        return TableUtility::getBold(frame.getIV(3));
+                    case 6:
+                        return TableUtility::getBold(frame.getIV(4));
+                    case 7:
+                        return TableUtility::getBold(frame.getIV(5));
+                }
+                break;
+            case Method::Method1:
+            case Method::ChainedShiny:
+                switch (index.column())
+                {
+                    case 6:
+                        return TableUtility::getBold(frame.getIV(0));
+                    case 7:
+                        return TableUtility::getBold(frame.getIV(1));
+                    case 8:
+                        return TableUtility::getBold(frame.getIV(2));
+                    case 9:
+                        return TableUtility::getBold(frame.getIV(3));
+                    case 10:
+                        return TableUtility::getBold(frame.getIV(4));
+                    case 11:
+                        return TableUtility::getBold(frame.getIV(5));
+                }
+                break;
+            case Method::MethodJ:
+            case Method::MethodK:
+                if (stationary)
+                {
+                    switch (index.column())
+                    {
+                        case 7:
+                            return TableUtility::getBold(frame.getIV(0));
+                        case 8:
+                            return TableUtility::getBold(frame.getIV(1));
+                        case 9:
+                            return TableUtility::getBold(frame.getIV(2));
+                        case 10:
+                            return TableUtility::getBold(frame.getIV(3));
+                        case 11:
+                            return TableUtility::getBold(frame.getIV(4));
+                        case 12:
+                            return TableUtility::getBold(frame.getIV(5));
+                    }
+                }
+                else
+                {
+                    switch (index.column())
+                    {
+                        case 9:
+                            return TableUtility::getBold(frame.getIV(0));
+                        case 10:
+                            return TableUtility::getBold(frame.getIV(1));
+                        case 11:
+                            return TableUtility::getBold(frame.getIV(2));
+                        case 12:
+                            return TableUtility::getBold(frame.getIV(3));
+                        case 13:
+                            return TableUtility::getBold(frame.getIV(4));
+                        case 14:
+                            return TableUtility::getBold(frame.getIV(5));
+                    }
+                }
+            default:
                 break;
         }
     }
@@ -776,113 +600,22 @@ QVariant Searcher4Model::data(const QModelIndex &index, int role) const
 
 QVariant Searcher4Model::headerData(int section, Qt::Orientation orientation, int role) const
 {
-    if (role == Qt::DisplayRole)
+    if (role == Qt::DisplayRole && orientation == Qt::Horizontal)
     {
-        if (orientation == Qt::Horizontal)
+        switch (method)
         {
-            switch (method)
-            {
-                case Method1:
-                case ChainedShiny:
-                    switch (section)
-                    {
-                        case 0:
-                            return tr("Seed");
-                        case 1:
-                            return tr("Frame");
-                        case 2:
-                            return tr("PID");
-                        case 3:
-                            return "!!!";
-                        case 4:
-                            return tr("Nature");
-                        case 5:
-                            return tr("Ability");
-                        case 6:
-                            return tr("HP");
-                        case 7:
-                            return tr("Atk");
-                        case 8:
-                            return tr("Def");
-                        case 9:
-                            return tr("SpA");
-                        case 10:
-                            return tr("SpD");
-                        case 11:
-                            return tr("Spe");
-                        case 12:
-                            return tr("Hidden");
-                        case 13:
-                            return tr("Power");
-                        case 14:
-                            return tr("Gender");
-                    }
-                    break;
-                case WondercardIVs:
-                    switch (section)
-                    {
-                        case 0:
-                            return tr("Seed");
-                        case 1:
-                            return tr("Frame");
-                        case 2:
-                            return tr("HP");
-                        case 3:
-                            return tr("Atk");
-                        case 4:
-                            return tr("Def");
-                        case 5:
-                            return tr("SpA");
-                        case 6:
-                            return tr("SpD");
-                        case 7:
-                            return tr("Spe");
-                        case 8:
-                            return tr("Hidden");
-                        case 9:
-                            return tr("Power");
-                    }
-                    break;
-                case MethodJ:
-                case MethodK:
-                    switch (section)
-                    {
-                        case 0:
-                            return tr("Seed");
-                        case 1:
-                            return tr("Frame");
-                        case 2:
-                            return tr("Lead");
-                        case 3:
-                            return tr("PID");
-                        case 4:
-                            return tr("Slot");
-                        case 5:
-                            return "!!!";
-                        case 6:
-                            return tr("Nature");
-                        case 7:
-                            return tr("Ability");
-                        case 8:
-                            return tr("HP");
-                        case 9:
-                            return tr("Atk");
-                        case 10:
-                            return tr("Def");
-                        case 11:
-                            return tr("SpA");
-                        case 12:
-                            return tr("SpD");
-                        case 13:
-                            return tr("Spe");
-                        case 14:
-                            return tr("Hidden");
-                        case 15:
-                            return tr("Power");
-                        case 16:
-                            return tr("Gender");
-                    }
-            }
+            case Method::Method1:
+            case Method::ChainedShiny:
+                return header1.at(section);
+                break;
+            case Method::WondercardIVs:
+                return header2.at(section);
+                break;
+            case Method::MethodJ:
+            case Method::MethodK:
+                return stationary ? header4.at(section) : header3.at(section);
+            default:
+                break;
         }
     }
     return QVariant();

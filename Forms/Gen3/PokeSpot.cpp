@@ -1,6 +1,6 @@
 /*
  * This file is part of PokéFinder
- * Copyright (C) 2017 by Admiral_Fish, bumba, and EzPzStreamz
+ * Copyright (C) 2017-2019 by Admiral_Fish, bumba, and EzPzStreamz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -17,17 +17,20 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+#include <QSettings>
 #include "PokeSpot.hpp"
 #include "ui_PokeSpot.h"
+#include <Core/Parents/FrameCompare.hpp>
+#include <Core/RNG/LCRNG.hpp>
+#include <Core/Util/Nature.hpp>
 
 PokeSpot::PokeSpot(QWidget *parent) :
-    QMainWindow(parent),
+    QWidget(parent),
     ui(new Ui::PokeSpot)
 {
     ui->setupUi(this);
     setAttribute(Qt::WA_QuitOnClose, false);
     setAttribute(Qt::WA_DeleteOnClose);
-    setWindowFlags(Qt::Widget | Qt::MSWindowsFixedSizeDialogHint);
 
     setupModels();
 }
@@ -35,132 +38,123 @@ PokeSpot::PokeSpot(QWidget *parent) :
 PokeSpot::~PokeSpot()
 {
     QSettings setting;
-    setting.setValue("pokespotTID", ui->textBoxTID->text());
-    setting.setValue("pokespotSID", ui->textBoxSID->text());
+    setting.beginGroup("pokespot");
+    setting.setValue("tid", ui->textBoxTID->text());
+    setting.setValue("sid", ui->textBoxSID->text());
+    setting.setValue("geometry", this->saveGeometry());
+    setting.endGroup();
 
     delete ui;
-    delete model;
 }
 
-void PokeSpot::changeEvent(QEvent *event)
+void PokeSpot::setupModels()
 {
-    if (event != NULL)
+    model = new PokeSpotModel(ui->tableView);
+
+    ui->textBoxSeed->setValues(InputType::Seed32Bit);
+    ui->textBoxStartingFrame->setValues(InputType::Frame32Bit);
+    ui->textBoxMaxResults->setValues(InputType::Frame32Bit);
+    ui->textBoxTID->setValues(InputType::TIDSID);
+    ui->textBoxSID->setValues(InputType::TIDSID);
+
+    ui->comboBoxGenderRatio->setItemData(0, 0);
+    ui->comboBoxGenderRatio->setItemData(1, 127);
+    ui->comboBoxGenderRatio->setItemData(2, 191);
+    ui->comboBoxGenderRatio->setItemData(3, 63);
+    ui->comboBoxGenderRatio->setItemData(4, 31);
+    ui->comboBoxGenderRatio->setItemData(5, 1);
+    ui->comboBoxGenderRatio->setItemData(6, 2);
+
+    ui->tableView->setModel(model);
+
+    ui->comboBoxNature->setup(Nature::getNatures());
+    ui->comboBoxSpotType->setup();
+
+    QSettings setting;
+    setting.beginGroup("pokespot");
+    if (setting.contains("tid")) ui->textBoxTID->setText(setting.value("tid").toString());
+    if (setting.contains("sid")) ui->textBoxSID->setText(setting.value("sid").toString());
+    if (setting.contains("geometry")) this->restoreGeometry(setting.value("geometry").toByteArray());
+    setting.endGroup();
+}
+
+void PokeSpot::on_pushButtonGenerate_clicked()
+{
+    model->clearModel();
+
+    QVector<Frame3> frames;
+
+    u32 seed = ui->textBoxSeed->getUInt();
+    u32 initialFrame = ui->textBoxStartingFrame->getUInt();
+    u32 maxResults = ui->textBoxMaxResults->getUInt();
+    u16 tid = ui->textBoxTID->getUShort();
+    u16 sid = ui->textBoxSID->getUShort();
+    u8 genderRatio = ui->comboBoxGenderRatio->currentData().toUInt();
+
+    XDRNG rng(seed, initialFrame - 1);
+    QVector<u16> rngList(maxResults + 5);
+    for (u16 &x : rngList)
     {
-        switch (event->type())
+        x = rng.nextUShort();
+    }
+
+    Frame3 frame(tid, sid, tid ^ sid);
+    FrameCompare compare(ui->comboBoxGender->currentIndex(), ui->comboBoxAbility->currentIndex(),
+                         ui->checkBoxShinyOnly->isChecked(), false, QVector<u8>(), QVector<u8>(), ui->comboBoxNature->getChecked(), QVector<bool>(), QVector<bool>());
+
+    QVector<bool> spots = ui->comboBoxSpotType->getChecked();
+
+    for (u32 cnt = 0; cnt < maxResults; cnt++)
+    {
+        // Check if frame is a valid pokespot call
+        if ((rngList.at(cnt) % 3) == 0)
         {
-            case QEvent::LanguageChange:
-                ui->retranslateUi(this);
-                break;
-            default:
-                break;
+            // Munchlax provides a frame skip
+            if ((rngList.at(cnt + 1) % 100) >= 10)
+            {
+                // Check what type the pokespot is
+                u8 call = rngList.at(cnt + 2) % 100;
+                if (call < 50)
+                {
+                    if (!spots.at(0))
+                    {
+                        continue;
+                    }
+                    frame.setLockReason(tr("Common"));
+                }
+                else if (call > 49 && call < 85)
+                {
+                    if (!spots.at(1))
+                    {
+                        continue;
+                    }
+                    frame.setLockReason(tr("Uncommon"));
+                }
+                else
+                {
+                    if (!spots.at(2))
+                    {
+                        continue;
+                    }
+                    frame.setLockReason(tr("Rare"));
+                }
+
+                u16 high = rngList.at(cnt + 3);
+                u16 low = rngList.at(cnt + 4);
+                frame.setPID(high, low, genderRatio);
+                if (compare.comparePID(frame))
+                {
+                    frame.setFrame(cnt + initialFrame);
+                    frames.append(frame);
+                }
+            }
         }
     }
+
+    model->addItems(frames);
 }
 
 void PokeSpot::on_pushButtonAnyAbility_clicked()
 {
     ui->comboBoxAbility->setCurrentIndex(0);
-}
-
-void PokeSpot::on_pushButtonAnyNature_clicked()
-{
-    ui->comboBoxNature->uncheckAll();
-}
-
-void PokeSpot::on_pushButtonAnySpotType_clicked()
-{
-    ui->comboBoxSpotType->uncheckAll();
-}
-
-void PokeSpot::setupModels()
-{
-    ui->textBoxSeed->setValues(0, 32, false);
-    ui->textBoxStartingFrame->setValues(1, 32, true);
-    ui->textBoxMaxResults->setValues(1, 32, true);
-    ui->textBoxTID->setValues(0, 48, true);
-    ui->textBoxSID->setValues(0, 48, true);
-
-    ui->tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-    ui->tableView->setModel(model);
-
-    ui->comboBoxNature->setup();
-    ui->comboBoxSpotType->setup();
-
-    QSettings setting;
-    ui->textBoxTID->setText(setting.value("pokespotTID").toString());
-    ui->textBoxSID->setText(setting.value("pokespotSID").toString());
-}
-
-void PokeSpot::on_pushButtonGenerate_clicked()
-{
-    model->clear();
-
-    vector<Frame3> frames;
-
-    u32 seed = ui->textBoxSeed->text().toUInt(NULL, 16);
-    u32 initialFrame = ui->textBoxStartingFrame->text().toUInt(NULL, 10);
-    u32 maxFrames = ui->textBoxMaxResults->text().toUInt(NULL, 10);
-    u32 tid = ui->textBoxTID->text().toUInt(NULL, 10);
-    u32 sid = ui->textBoxSID->text().toUInt(NULL, 10);
-
-    int genderRatio = ui->comboBoxGenderRatio->currentIndex();
-
-    rng.seed = seed;
-    rng.advanceFrames(initialFrame - 1);
-
-    rngList.clear();
-    for (int x = 0; x < 5; x++)
-        rngList.push_back(rng.nextUShort());
-
-    u32 max = initialFrame + maxFrames;
-    u32 call1, call2, call3;
-
-    Frame3 frame = Frame3(tid, sid, tid ^ sid);
-    FrameCompare compare = FrameCompare(ui->comboBoxGender->currentIndex(), genderRatio, ui->comboBoxAbility->currentIndex(),
-                                        ui->comboBoxNature->getChecked(), ui->checkBoxShinyOnly->isChecked());
-    frame.genderRatio = genderRatio;
-
-    vector<bool> spots = ui->comboBoxSpotType->getChecked();
-
-    for (u32 cnt = initialFrame; cnt < max; cnt++, rngList.erase(rngList.begin()), rngList.push_back(rng.nextUShort()))
-    {
-        // Check if frame is a valid pokespot call
-        call1 = rngList[0] % 3;
-        if (call1 != 0)
-            continue;
-
-        // Munchlax provides a frame skip
-        call2 = rngList[1] % 100;
-        if (call2 < 10)
-            continue;
-
-        // Check what type the pokespot is
-        call3 = rngList[2] % 100;
-        if (call3 < 50)
-        {
-            if (!spots[0])
-                continue;
-            frame.lockReason = tr("Common");
-        }
-        else if (call3 > 49 && call3 < 85)
-        {
-            if (!spots[1])
-                continue;
-            frame.lockReason = tr("Uncommon");
-        }
-        else
-        {
-            if (!spots[2])
-                continue;
-            frame.lockReason = tr("Rare");
-        }
-
-        frame.setPID(rngList[4], rngList[3]);
-        if (compare.comparePID(frame))
-        {
-            frame.frame = cnt;
-            frames.push_back(frame);
-        }
-    }
-    model->setModel(frames);
 }

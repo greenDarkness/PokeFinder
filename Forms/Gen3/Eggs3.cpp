@@ -1,6 +1,6 @@
 /*
  * This file is part of PokéFinder
- * Copyright (C) 2017 by Admiral_Fish, bumba, and EzPzStreamz
+ * Copyright (C) 2017-2019 by Admiral_Fish, bumba, and EzPzStreamz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -17,11 +17,16 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+#include <QSettings>
 #include "Eggs3.hpp"
 #include "ui_Eggs3.h"
+#include <Core/Gen3/Egg3.hpp>
+#include <Core/Util/Nature.hpp>
+#include <Core/Util/Power.hpp>
+#include <Forms/Gen3/ProfileManager3.hpp>
 
 Eggs3::Eggs3(QWidget *parent) :
-    QMainWindow(parent),
+    QWidget(parent),
     ui(new Ui::Eggs3)
 {
     ui->setupUi(this);
@@ -34,160 +39,137 @@ Eggs3::Eggs3(QWidget *parent) :
 Eggs3::~Eggs3()
 {
     QSettings setting;
-    setting.setValue("egg3Profile", ui->comboBoxProfiles->currentIndex());
+    setting.beginGroup("eggs3");
+    setting.setValue("profile", ui->comboBoxProfiles->currentIndex());
+    setting.setValue("geometry", this->saveGeometry());
+    setting.endGroup();
 
     delete ui;
-    delete emeraldIVs;
-    delete emeraldPID;
-    delete rs;
-    delete frlg;
 }
 
 void Eggs3::updateProfiles()
 {
     profiles = Profile3::loadProfileList();
+    profiles.insert(profiles.begin(), Profile3());
 
     ui->comboBoxProfiles->clear();
 
-    ui->comboBoxProfiles->addItem(tr("None"));
-    for (int i = 0; i < (int)profiles.size(); i++)
-        ui->comboBoxProfiles->addItem(profiles.at(i).profileName);
+    for (const auto &profile : profiles)
+    {
+        ui->comboBoxProfiles->addItem(profile.getProfileName());
+    }
 
     QSettings setting;
-    int val = setting.value("egg3Profile").toInt();
+    int val = setting.value("eggs3/profile", 0).toInt();
     if (val < ui->comboBoxProfiles->count())
+    {
         ui->comboBoxProfiles->setCurrentIndex(val);
+    }
 }
 
 void Eggs3::setupModels()
 {
+    emeraldIVs = new Egg3Model(ui->tableViewEmeraldIVs, Method::EBred);
+    emeraldPID = new Egg3Model(ui->tableViewEmeraldPID, Method::EBredPID);
+    rs = new Egg3Model(ui->tableViewRS, Method::RSBred);
+    frlg = new Egg3Model(ui->tableViewFRLG, Method::FRLGBred);
+
     ui->tableViewEmeraldIVs->setModel(emeraldIVs);
-
     ui->tableViewEmeraldPID->setModel(emeraldPID);
-
     ui->tableViewRS->setModel(rs);
-
     ui->tableViewFRLG->setModel(frlg);
 
-    ui->textBoxMinFrameEmeraldPID->setValues(1, 32, true);
-    ui->textBoxMaxFrameEmeraldPID->setValues(1, 32, true);
-    ui->textBoxMinRedraws->setValues(0, 56, true);
-    ui->textBoxMaxRedraws->setValues(0, 56, true);
-    ui->textBoxCalibration->setValues(0, 56, true);
-    ui->textBoxTIDEmerald->setValues(0, 48, true);
-    ui->textBoxSIDEmerald->setValues(0, 48, true);
-    ui->textBoxMinFrameEmeraldIVs->setValues(1, 32, true);
-    ui->textBoxMaxFrameEmeraldIVs->setValues(1, 32, true);
+    ui->textBoxEmeraldPIDMinFrame->setValues(InputType::Frame32Bit);
+    ui->textBoxEmeraldPIDMaxFrame->setValues(InputType::Frame32Bit);
+    ui->textBoxMinRedraws->setValues(0, 255);
+    ui->textBoxMaxRedraws->setValues(0, 255);
+    ui->textBoxCalibration->setValues(0, 255);
+    ui->textBoxEmeraldTID->setValues(InputType::TIDSID);
+    ui->textBoxEmeraldSID->setValues(InputType::TIDSID);
+    ui->textBoxEmeraldIVsMinFrame->setValues(InputType::Frame32Bit);
+    ui->textBoxEmeraldIVsMaxFrame->setValues(InputType::Frame32Bit);
 
-    ui->textBoxSeedRS->setValues(0, 48, false);
-    ui->textBoxMinHeldRS->setValues(1, 32, true);
-    ui->textBoxMaxHeldRS->setValues(1, 32, true);
-    ui->textBoxMinPickupRS->setValues(1, 32, true);
-    ui->textBoxMaxPickupRS->setValues(1, 32, true);
-    ui->textBoxTIDRS->setValues(0, 48, true);
-    ui->textBoxSIDRS->setValues(0, 48, true);
+    ui->textBoxRSSeedHeld->setValues(InputType::Seed16Bit);
+    ui->textBoxRSSeedPickup->setValues(InputType::Seed16Bit);
+    ui->textBoxRSMinHeld->setValues(InputType::Frame32Bit);
+    ui->textBoxRSMaxHeld->setValues(InputType::Frame32Bit);
+    ui->textBoxRSMinPickup->setValues(InputType::Frame32Bit);
+    ui->textBoxRSMaxPickup->setValues(InputType::Frame32Bit);
+    ui->textBoxRSTID->setValues(InputType::TIDSID);
+    ui->textBoxRSSID->setValues(InputType::TIDSID);
 
-    ui->textBoxSeedFRLG->setValues(0, 48, false);
-    ui->textBoxMinHeldFRLG->setValues(1, 32, true);
-    ui->textBoxMaxHeldFRLG->setValues(1, 32, true);
-    ui->textBoxMinPickupFRLG->setValues(1, 32, true);
-    ui->textBoxMaxPickupFRLG->setValues(1, 32, true);
-    ui->textBoxTIDFRLG->setValues(0, 48, true);
-    ui->textBoxSIDFRLG->setValues(0, 48, true);
+    ui->textBoxFRLGSeedHeld->setValues(InputType::Seed16Bit);
+    ui->textBoxFRLGSeedPickup->setValues(InputType::Seed16Bit);
+    ui->textBoxFRLGMinHeld->setValues(InputType::Frame32Bit);
+    ui->textBoxFRLGMaxHeld->setValues(InputType::Frame32Bit);
+    ui->textBoxFRLGMinPickup->setValues(InputType::Frame32Bit);
+    ui->textBoxFRLGMaxPickup->setValues(InputType::Frame32Bit);
+    ui->textBoxFRLGTID->setValues(InputType::TIDSID);
+    ui->textBoxFRLGSID->setValues(InputType::TIDSID);
 
-    ui->comboBoxCompatibilityEmerald->setItemData(0, 20);
-    ui->comboBoxCompatibilityEmerald->setItemData(1, 50);
-    ui->comboBoxCompatibilityEmerald->setItemData(2, 70);
+    ui->comboBoxEmeraldCompatibility->setItemData(0, 20);
+    ui->comboBoxEmeraldCompatibility->setItemData(1, 50);
+    ui->comboBoxEmeraldCompatibility->setItemData(2, 70);
 
-    ui->comboBoxCompatibilityRS->setItemData(0, 20);
-    ui->comboBoxCompatibilityRS->setItemData(1, 50);
-    ui->comboBoxCompatibilityRS->setItemData(2, 70);
+    ui->comboBoxRSCompatibility->setItemData(0, 20);
+    ui->comboBoxRSCompatibility->setItemData(1, 50);
+    ui->comboBoxRSCompatibility->setItemData(2, 70);
 
-    ui->comboBoxCompatibilityFRLG->setItemData(0, 20);
-    ui->comboBoxCompatibilityFRLG->setItemData(1, 50);
-    ui->comboBoxCompatibilityFRLG->setItemData(2, 70);
+    ui->comboBoxFRLGCompatibility->setItemData(0, 20);
+    ui->comboBoxFRLGCompatibility->setItemData(1, 50);
+    ui->comboBoxFRLGCompatibility->setItemData(2, 70);
 
-    ui->comboBoxNatureEmerald->setup();
-    ui->comboBoxNatureFRLG->setup();
-    ui->comboBoxNatureRS->setup();
+    ui->comboBoxEmeraldGenderRatio->setItemData(0, 0);
+    ui->comboBoxEmeraldGenderRatio->setItemData(1, 127);
+    ui->comboBoxEmeraldGenderRatio->setItemData(2, 191);
+    ui->comboBoxEmeraldGenderRatio->setItemData(3, 63);
+    ui->comboBoxEmeraldGenderRatio->setItemData(4, 31);
+    ui->comboBoxEmeraldGenderRatio->setItemData(5, 1);
+    ui->comboBoxEmeraldGenderRatio->setItemData(6, 2);
 
-    ui->comboBoxHiddenPowerEmerald->setup();
-    ui->comboBoxHiddenPowerFRLG->setup();
-    ui->comboBoxHiddenPowerRS->setup();
-}
+    ui->comboBoxFRLGGenderRatio->setItemData(0, 0);
+    ui->comboBoxFRLGGenderRatio->setItemData(1, 127);
+    ui->comboBoxFRLGGenderRatio->setItemData(2, 191);
+    ui->comboBoxFRLGGenderRatio->setItemData(3, 63);
+    ui->comboBoxFRLGGenderRatio->setItemData(4, 31);
+    ui->comboBoxFRLGGenderRatio->setItemData(5, 1);
+    ui->comboBoxFRLGGenderRatio->setItemData(6, 2);
 
-void Eggs3::changeEvent(QEvent *event)
-{
-    if (event != NULL)
-    {
-        switch (event->type())
-        {
-            case QEvent::LanguageChange:
-                ui->retranslateUi(this);
-                break;
-            default:
-                break;
-        }
-    }
-}
+    ui->comboBoxRSGenderRatio->setItemData(0, 0);
+    ui->comboBoxRSGenderRatio->setItemData(1, 127);
+    ui->comboBoxRSGenderRatio->setItemData(2, 191);
+    ui->comboBoxRSGenderRatio->setItemData(3, 63);
+    ui->comboBoxRSGenderRatio->setItemData(4, 31);
+    ui->comboBoxRSGenderRatio->setItemData(5, 1);
+    ui->comboBoxRSGenderRatio->setItemData(6, 2);
 
-void Eggs3::on_comboBoxProfiles_currentIndexChanged(int index)
-{
-    if (index <= 0)
-    {
-        ui->textBoxTIDEmerald->setText("12345");
-        ui->textBoxSIDEmerald->setText("54321");
-        ui->textBoxTIDRS->setText("12345");
-        ui->textBoxSIDRS->setText("54321");
-        ui->textBoxTIDFRLG->setText("12345");
-        ui->textBoxSIDFRLG->setText("54321");
-        ui->profileTID->setText("12345");
-        ui->profileSID->setText("54321");
-        ui->profileGame->setText(tr("Emerald"));
-    }
-    else
-    {
-        auto profile = profiles.at(index - 1);
-        ui->textBoxTIDEmerald->setText(QString::number(profile.tid));
-        ui->textBoxSIDEmerald->setText(QString::number(profile.sid));
-        ui->textBoxTIDRS->setText(QString::number(profile.tid));
-        ui->textBoxSIDRS->setText(QString::number(profile.sid));
-        ui->textBoxTIDFRLG->setText(QString::number(profile.tid));
-        ui->textBoxSIDFRLG->setText(QString::number(profile.sid));
-        ui->profileTID->setText(QString::number(profile.tid));
-        ui->profileSID->setText(QString::number(profile.sid));
-        ui->profileGame->setText(profile.getVersion());
-    }
-}
+    ui->comboBoxEmeraldNature->setup(Nature::getNatures());
+    ui->comboBoxEverstone->addItems(Nature::getNatures());
+    ui->comboBoxFRLGNature->setup(Nature::getNatures());
+    ui->comboBoxRSNature->setup(Nature::getNatures());
 
-void Eggs3::on_pushButtonAnyAbilityEmerald_clicked()
-{
-    ui->comboBoxAbilityEmerald->setCurrentIndex(0);
-}
+    ui->comboBoxEmeraldHiddenPower->setup(Power::getPowers());
+    ui->comboBoxFRLGHiddenPower->setup(Power::getPowers());
+    ui->comboBoxRSHiddenPower->setup(Power::getPowers());
 
-void Eggs3::on_pushButtonAnyNatureEmerald_clicked()
-{
-    ui->comboBoxNatureEmerald->uncheckAll();
-}
+    ui->comboBoxEmeraldMethod->setItemData(0, Method::EBred);
+    ui->comboBoxEmeraldMethod->setItemData(1, Method::EBredSplit);
+    ui->comboBoxEmeraldMethod->setItemData(2, Method::EBredAlternate);
 
-void Eggs3::on_pushButtonAnyAbilityRS_clicked()
-{
-    ui->comboBoxAbilityRS->setCurrentIndex(0);
-}
+    ui->comboBoxRSMethod->setItemData(0, Method::RSBred);
+    ui->comboBoxRSMethod->setItemData(1, Method::RSBredSplit);
+    ui->comboBoxRSMethod->setItemData(2, Method::RSBredAlternate);
 
-void Eggs3::on_pushButtonAnyNatureRS_clicked()
-{
-    ui->comboBoxNatureRS->uncheckAll();
-}
+    ui->comboBoxFRLGMethod->setItemData(0, Method::FRLGBred);
+    ui->comboBoxFRLGMethod->setItemData(1, Method::FRLGBredSplit);
+    ui->comboBoxFRLGMethod->setItemData(2, Method::FRLGBredAlternate);
 
-void Eggs3::on_pushButtonAnyAbilityFRLG_clicked()
-{
-    ui->comboBoxAbilityFRLG->setCurrentIndex(0);
-}
+    connect(ui->eggSettingsEmerald, &EggSettings::toggleInheritance, emeraldIVs, &Egg3Model::toggleInheritance);
+    connect(ui->eggSettingsRS, &EggSettings::toggleInheritance, rs, &Egg3Model::toggleInheritance);
+    connect(ui->eggSettingsFRLG, &EggSettings::toggleInheritance, frlg, &Egg3Model::toggleInheritance);
 
-void Eggs3::on_pushButtonAnyNatureFRLG_clicked()
-{
-    ui->comboBoxNatureFRLG->uncheckAll();
+    QSettings setting;
+    if (setting.contains("eggs3/geometry")) this->restoreGeometry(setting.value("eggs3/geometry").toByteArray());
 }
 
 void Eggs3::refreshProfiles()
@@ -195,130 +177,149 @@ void Eggs3::refreshProfiles()
     emit alertProfiles(3);
 }
 
-void Eggs3::on_pushButtonGenerateEmeraldPID_clicked()
+void Eggs3::on_pushButtonEmeraldPIDGenerate_clicked()
 {
-    emeraldPID->clear();
+    emeraldPID->clearModel();
 
-    u32 startingFrame = ui->textBoxMinFrameEmeraldPID->text().toUInt(NULL, 10);
-    u32 maxResults = ui->textBoxMaxFrameEmeraldPID->text().toUInt(NULL, 10);
-    u32 tid = ui->textBoxTIDEmerald->text().toUInt(NULL, 10);
-    u32 sid = ui->textBoxSIDEmerald->text().toUInt(NULL, 10);
-    int genderRatioIndex = ui->comboBoxGenderRatioEmerald->currentIndex();
+    u32 startingFrame = ui->textBoxEmeraldPIDMinFrame->getUInt();
+    u32 maxResults = ui->textBoxEmeraldPIDMaxFrame->getUInt();
+    u16 tid = ui->textBoxEmeraldTID->getUShort();
+    u16 sid = ui->textBoxEmeraldSID->getUShort();
+    u8 genderRatio = ui->comboBoxEmeraldGenderRatio->currentData().toUInt();
 
-    Egg3 generator = Egg3(maxResults, startingFrame, tid, sid, EBredPID);
-    generator.minRedraw = ui->textBoxMinRedraws->text().toUInt(NULL, 10);
-    generator.maxRedraw = ui->textBoxMaxRedraws->text().toUInt(NULL, 10);
-    generator.calibration = ui->textBoxCalibration->text().toUInt(NULL, 10);
-    generator.compatability = ui->comboBoxCompatibilityEmerald->currentData().toUInt(NULL);
-    generator.everstone = ui->comboBoxEverstone->currentIndex() != 0;
+    Egg3 generator(maxResults, startingFrame, tid, sid, Method::EBredPID, genderRatio);
+    generator.setMinRedraw(ui->textBoxMinRedraws->getUInt());
+    generator.setMaxRedraw(ui->textBoxMaxRedraws->getUInt());
+    generator.setCalibration(ui->textBoxCalibration->getUInt());
+    generator.setCompatability(ui->comboBoxEmeraldCompatibility->currentData().toUInt());
+    generator.setEverstone(ui->comboBoxEverstone->currentIndex() != 0);
     if (ui->comboBoxEverstone->currentIndex() != 0)
-        generator.everstoneNature = Nature::getAdjustedNature(ui->comboBoxEverstone->currentIndex() - 1);
+    {
+        generator.setEverstoneNature(Nature::getAdjustedNature(ui->comboBoxEverstone->currentIndex() - 1));
+    }
 
-    FrameCompare compare = FrameCompare(ui->comboBoxGenderEmerald->currentIndex(), genderRatioIndex, ui->comboBoxAbilityEmerald->currentIndex(),
-                                        ui->comboBoxNatureEmerald->getChecked(), ui->checkBoxShinyEmerald->isChecked());
+    FrameCompare compare(ui->comboBoxEmeraldGender->currentIndex(), ui->comboBoxEmeraldAbility->currentIndex(),
+                         ui->checkBoxEmeraldShiny->isChecked(), false, QVector<u8>(), QVector<u8>(),
+                         ui->comboBoxEmeraldNature->getChecked(), QVector<bool>(), QVector<bool>());
 
-    vector<Frame3> frames = generator.generate(compare);
-    emeraldPID->setModel(frames);
+    QVector<Frame3> frames = generator.generate(compare);
+    emeraldPID->addItems(frames);
 }
 
-void Eggs3::on_pushButtonGenerateEmeraldIVs_clicked()
+void Eggs3::on_pushButtonEmeraldIVsGenerate_clicked()
 {
-    emeraldIVs->clear();
+    emeraldIVs->clearModel();
 
-    u32 startingFrame = ui->textBoxMinFrameEmeraldIVs->text().toUInt(NULL, 10);
-    u32 maxResults = ui->textBoxMaxFrameEmeraldIVs->text().toUInt(NULL, 10);
-    u32 tid = ui->textBoxTIDEmerald->text().toUInt(NULL, 10);
-    u32 sid = ui->textBoxSIDEmerald->text().toUInt(NULL, 10);
+    u32 startingFrame = ui->textBoxEmeraldIVsMinFrame->getUInt();
+    u32 maxResults = ui->textBoxEmeraldIVsMaxFrame->getUInt();
+    u16 tid = ui->textBoxEmeraldTID->getUShort();
+    u16 sid = ui->textBoxEmeraldSID->getUShort();
+    Method method = static_cast<Method>(ui->comboBoxEmeraldMethod->currentData().toUInt());
 
-    Method method = EBredAlternate;
-    if (ui->radioButtonNormal->isChecked())
-        method = EBred;
-    else if (ui->radioButtonSplit->isChecked())
-        method = EBredSplit;
+    Egg3 generator(maxResults, startingFrame, tid, sid, method, 0);
+    generator.setParents(ui->eggSettingsEmerald->getParent1(), ui->eggSettingsEmerald->getParent2());
 
-    vector<u32> parent1 = { (u32)ui->parent1HPEmerald->value(), (u32)ui->parent1AtkEmerald->value(), (u32)ui->parent1DefEmerald->value(),
-                            (u32)ui->parent1SpAEmerald->value(), (u32)ui->parent1SpDEmerald->value(), (u32)ui->parent1SpeEmerald->value()
-                          };
-    vector<u32> parent2 = { (u32)ui->parent2HPEmerald->value(), (u32)ui->parent2AtkEmerald->value(), (u32)ui->parent2DefEmerald->value(),
-                            (u32)ui->parent2SpAEmerald->value(), (u32)ui->parent2SpDEmerald->value(), (u32)ui->parent2SpeEmerald->value()
-                          };
+    FrameCompare compare(0, 0, false, false, ui->ivFilterEmerald->getLower(), ui->ivFilterEmerald->getUpper(),
+                         QVector<bool>(), ui->comboBoxEmeraldHiddenPower->getChecked(), QVector<bool>());
 
-    Egg3 generator = Egg3(maxResults, startingFrame, tid, sid, method);
-    generator.setParents(parent1, parent2);
-
-    FrameCompare compare = FrameCompare(ui->ivFilterEmerald->getEvals(), ui->ivFilterEmerald->getValues(), ui->comboBoxHiddenPowerEmerald->getChecked());
-
-    vector<Frame3> frames = generator.generate(compare);
-    emeraldIVs->setModel(frames);
+    QVector<Frame3> frames = generator.generate(compare);
+    emeraldIVs->addItems(frames);
 }
 
-void Eggs3::on_pushButtonGenerateRS_clicked()
+void Eggs3::on_pushButtonRSGenerate_clicked()
 {
-    rs->clear();
+    rs->clearModel();
 
-    u32 minHeld = ui->textBoxMinHeldRS->text().toUInt(NULL, 10);
-    u32 maxHeld = ui->textBoxMaxHeldRS->text().toUInt(NULL, 10);
-    u32 tid = ui->textBoxTIDRS->text().toUInt(NULL, 10);
-    u32 sid = ui->textBoxSIDRS->text().toUInt(NULL, 10);
+    u32 minHeld = ui->textBoxRSMinHeld->getUInt();
+    u32 maxHeld = ui->textBoxRSMaxHeld->getUInt();
+    u16 tid = ui->textBoxRSTID->getUShort();
+    u16 sid = ui->textBoxRSSID->getUShort();
+    u8 genderRatio = ui->comboBoxRSGenderRatio->currentData().toUInt();
+    Method method = static_cast<Method>(ui->comboBoxRSMethod->currentData().toUInt());
 
-    vector<u32> parent1 = { (u32)ui->parent1HPRS->value(), (u32)ui->parent1AtkRS->value(), (u32)ui->parent1DefRS->value(),
-                            (u32)ui->parent1SpARS->value(), (u32)ui->parent1SpDRS->value(), (u32)ui->parent1SpeRS->value()
-                          };
-    vector<u32> parent2 = { (u32)ui->parent2HPRS->value(), (u32)ui->parent2AtkRS->value(), (u32)ui->parent2DefRS->value(),
-                            (u32)ui->parent2SpARS->value(), (u32)ui->parent2SpDRS->value(), (u32)ui->parent2SpeRS->value()
-                          };
+    Egg3 generator(maxHeld, minHeld, tid, sid, method, genderRatio, ui->textBoxRSSeedHeld->getUInt());
+    generator.setPickupSeed(ui->textBoxRSSeedPickup->getUInt());
+    generator.setParents(ui->eggSettingsRS->getParent1(), ui->eggSettingsRS->getParent2());
 
-    Egg3 generator = Egg3(maxHeld, minHeld, tid, sid, RSBred);
-    generator.setParents(parent1, parent2);
-    generator.seed = ui->textBoxSeedRS->text().toUInt(NULL, 16);
+    generator.setMinPickup(ui->textBoxRSMinPickup->getUInt());
+    generator.setMaxPickup(ui->textBoxRSMaxPickup->getUInt());
+    generator.setCompatability(ui->comboBoxRSCompatibility->currentData().toUInt());
 
-    generator.minPickup = ui->textBoxMinPickupRS->text().toUInt(NULL, 10);
-    generator.maxPickup = ui->textBoxMaxPickupRS->text().toUInt(NULL, 10);
-    generator.compatability = ui->comboBoxCompatibilityRS->currentData().toUInt(NULL);
+    FrameCompare compare(ui->comboBoxRSGender->currentIndex(), ui->comboBoxRSAbility->currentIndex(),
+                         ui->checkBoxRSShiny->isChecked(), false, ui->ivFilterRS->getLower(), ui->ivFilterRS->getUpper(),
+                         ui->comboBoxRSNature->getChecked(), ui->comboBoxRSHiddenPower->getChecked(), QVector<bool>());
 
-    FrameCompare compare = FrameCompare(ui->ivFilterRS->getEvals(), ui->ivFilterRS->getValues(), ui->comboBoxGenderRS->currentIndex(),
-                                        ui->comboBoxGenderRatioRS->currentIndex(), ui->comboBoxAbilityRS->currentIndex(), ui->comboBoxNatureRS->getChecked(),
-                                        ui->comboBoxHiddenPowerRS->getChecked(), ui->checkBoxShinyRS->isChecked(), false);
-
-    vector<Frame3> frames = generator.generate(compare);
-    rs->setModel(frames);
+    QVector<Frame3> frames = generator.generate(compare);
+    rs->addItems(frames);
 }
 
-void Eggs3::on_pushButtonGenerateFRLG_clicked()
+void Eggs3::on_pushButtonFRLGGenerate_clicked()
 {
-    frlg->clear();
+    frlg->clearModel();
 
-    u32 minHeld = ui->textBoxMinHeldFRLG->text().toUInt(NULL, 10);
-    u32 maxHeld = ui->textBoxMaxHeldFRLG->text().toUInt(NULL, 10);
-    u32 tid = ui->textBoxTIDFRLG->text().toUInt(NULL, 10);
-    u32 sid = ui->textBoxSIDFRLG->text().toUInt(NULL, 10);
+    u32 minHeld = ui->textBoxFRLGMinHeld->getUInt();
+    u32 maxHeld = ui->textBoxFRLGMaxHeld->getUInt();
+    u16 tid = ui->textBoxFRLGTID->getUShort();
+    u16 sid = ui->textBoxFRLGSID->getUShort();
+    u8 genderRatio = ui->comboBoxFRLGGenderRatio->currentData().toUInt();
+    Method method = static_cast<Method>(ui->comboBoxFRLGMethod->currentData().toUInt());
 
-    vector<u32> parent1 = { (u32)ui->parent1HPFRLG->value(), (u32)ui->parent1AtkFRLG->value(), (u32)ui->parent1DefFRLG->value(),
-                            (u32)ui->parent1SpAFRLG->value(), (u32)ui->parent1SpDFRLG->value(), (u32)ui->parent1SpeFRLG->value()
-                          };
-    vector<u32> parent2 = { (u32)ui->parent2HPFRLG->value(), (u32)ui->parent2AtkFRLG->value(), (u32)ui->parent2DefFRLG->value(),
-                            (u32)ui->parent2SpAFRLG->value(), (u32)ui->parent2SpDFRLG->value(), (u32)ui->parent2SpeFRLG->value()
-                          };
+    Egg3 generator(maxHeld, minHeld, tid, sid, method, genderRatio, ui->textBoxFRLGSeedHeld->getUInt());
+    generator.setPickupSeed(ui->textBoxFRLGSeedPickup->getUInt());
+    generator.setParents(ui->eggSettingsFRLG->getParent1(), ui->eggSettingsFRLG->getParent2());
 
-    Egg3 generator = Egg3(maxHeld, minHeld, tid, sid, FRLGBred);
-    generator.setParents(parent1, parent2);
-    generator.seed = ui->textBoxSeedFRLG->text().toUInt(NULL, 16);
+    generator.setMinPickup(ui->textBoxFRLGMinPickup->getUInt());
+    generator.setMaxPickup(ui->textBoxFRLGMaxPickup->getUInt());
+    generator.setCompatability(ui->comboBoxFRLGCompatibility->currentData().toUInt());
 
-    generator.minPickup = ui->textBoxMinPickupFRLG->text().toUInt(NULL, 10);
-    generator.maxPickup = ui->textBoxMaxPickupFRLG->text().toUInt(NULL, 10);
-    generator.compatability = ui->comboBoxCompatibilityFRLG->currentData().toUInt(NULL);
+    FrameCompare compare(ui->comboBoxFRLGGender->currentIndex(), ui->comboBoxFRLGAbility->currentIndex(),
+                         ui->checkBoxFRLGShiny->isChecked(), false, ui->ivFilterFRLG->getLower(), ui->ivFilterFRLG->getUpper(),
+                         ui->comboBoxFRLGNature->getChecked(), ui->comboBoxFRLGHiddenPower->getChecked(), QVector<bool>());
 
-    FrameCompare compare = FrameCompare(ui->ivFilterFRLG->getEvals(), ui->ivFilterFRLG->getValues(), ui->comboBoxGenderFRLG->currentIndex(),
-                                        ui->comboBoxGenderRatioFRLG->currentIndex(), ui->comboBoxAbilityFRLG->currentIndex(), ui->comboBoxNatureFRLG->getChecked(),
-                                        ui->comboBoxHiddenPowerFRLG->getChecked(), ui->checkBoxShinyFRLG->isChecked(), false);
+    QVector<Frame3> frames = generator.generate(compare);
+    frlg->addItems(frames);
+}
 
-    vector<Frame3> frames = generator.generate(compare);
-    frlg->setModel(frames);
+void Eggs3::on_comboBoxProfiles_currentIndexChanged(int index)
+{
+    if (index < 0)
+    {
+        return;
+    }
+
+    auto profile = profiles.at(index);
+    QString tid = QString::number(profile.getTID());
+    QString sid = QString::number(profile.getSID());
+
+    ui->textBoxEmeraldTID->setText(tid);
+    ui->textBoxEmeraldSID->setText(sid);
+    ui->textBoxRSTID->setText(tid);
+    ui->textBoxRSSID->setText(sid);
+    ui->textBoxFRLGTID->setText(tid);
+    ui->textBoxFRLGSID->setText(sid);
+    ui->labelProfileTIDValue->setText(tid);
+    ui->labelProfileSIDValue->setText(sid);
+    ui->labelProfileGameValue->setText(profile.getVersionString());
+}
+
+void Eggs3::on_pushButtonEmeraldAnyAbility_clicked()
+{
+    ui->comboBoxEmeraldAbility->setCurrentIndex(0);
+}
+
+void Eggs3::on_pushButtonRSAnyAbility_clicked()
+{
+    ui->comboBoxRSAbility->setCurrentIndex(0);
+}
+
+void Eggs3::on_pushButtonFRLGAnyAbility_clicked()
+{
+    ui->comboBoxFRLGAbility->setCurrentIndex(0);
 }
 
 void Eggs3::on_pushButtonProfileManager_clicked()
 {
-    ProfileManager3 *manager = new ProfileManager3();
-    connect(manager, SIGNAL(updateProfiles()), this, SLOT(refreshProfiles()));
+    auto *manager = new ProfileManager3();
+    connect(manager, &ProfileManager3::updateProfiles, this, &Eggs3::refreshProfiles);
     manager->show();
 }

@@ -1,6 +1,6 @@
 /*
  * This file is part of PokéFinder
- * Copyright (C) 2017 by Admiral_Fish, bumba, and EzPzStreamz
+ * Copyright (C) 2017-2019 by Admiral_Fish, bumba, and EzPzStreamz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,42 +20,33 @@
 #ifndef IVTOPIDHPP
 #define IVTOPIDHPP
 
-#include <QMainWindow>
 #include <QStandardItemModel>
-#include <QStandardItem>
-#include <QList>
-#include <PokeFinderCore/RNG/RNGEuclidean.hpp>
-#include <PokeFinderCore/RNG/LCRNG.hpp>
-#include <PokeFinderCore/Objects/Nature.hpp>
-
-typedef uint32_t u32;
+#include <QWidget>
+#include <Core/Util/Global.hpp>
 
 namespace Ui
 {
     class IVtoPID;
 }
 
-class IVtoPID : public QMainWindow
+class IVtoPID : public QWidget
 {
     Q_OBJECT
 
-protected:
-    void changeEvent(QEvent *);
+public:
+    explicit IVtoPID(QWidget *parent = nullptr);
+    ~IVtoPID() override;
 
 private:
     Ui::IVtoPID *ui;
-    QStandardItemModel *model = new QStandardItemModel(this);
+    QStandardItemModel *model{};
 
     void setupModels();
-    void getSeeds(u32 ivs1, u32 ivs2, u32 nature, u32 tid);
-    void getSeedsChannel(u32 hp, u32 atk, u32 def, u32 spa, u32 spd, u32 spe, u32 nature);
+    QVector<QList<QStandardItem *>> getSeeds(u16 ivs1, u16 ivs2, u8 nature, u16 tid);
+    QVector<QList<QStandardItem *>> getSeedsChannel(u8 hp, u8 atk, u8 def, u8 spa, u8 spd, u8 spe, u8 nature);
 
 private slots:
     void on_pushButtonFind_clicked();
-
-public:
-    explicit IVtoPID(QWidget *parent = 0);
-    ~IVtoPID();
 
 };
 

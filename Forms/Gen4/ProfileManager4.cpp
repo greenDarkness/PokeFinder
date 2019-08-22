@@ -1,6 +1,6 @@
 /*
  * This file is part of PokéFinder
- * Copyright (C) 2017 by Admiral_Fish, bumba, and EzPzStreamz
+ * Copyright (C) 2017-2019 by Admiral_Fish, bumba, and EzPzStreamz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -17,11 +17,14 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+#include <QMessageBox>
+#include <QSettings>
 #include "ProfileManager4.hpp"
 #include "ui_ProfileManager4.h"
+#include <Forms/Gen4/ProfileEditor4.hpp>
 
 ProfileManager4::ProfileManager4(QWidget *parent) :
-    QMainWindow(parent),
+    QWidget(parent),
     ui(new Ui::ProfileManager4)
 {
     ui->setupUi(this);
@@ -33,64 +36,38 @@ ProfileManager4::ProfileManager4(QWidget *parent) :
 
 ProfileManager4::~ProfileManager4()
 {
-    delete ui;
-    delete model;
-}
+    QSettings setting;
+    setting.setValue("profileManager4/geometry", this->saveGeometry());
 
-void ProfileManager4::changeEvent(QEvent *event)
-{
-    if (event != NULL)
-    {
-        switch (event->type())
-        {
-            case QEvent::LanguageChange:
-                ui->retranslateUi(this);
-                break;
-            default:
-                break;
-        }
-    }
+    delete ui;
 }
 
 void ProfileManager4::setupModels()
 {
-    model->setModel(Profile4::loadProfileList());
+    model = new Profile4Model(ui->tableView);
+    model->addItems(Profile4::loadProfileList());
     ui->tableView->setModel(model);
-    ui->tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+
+    QSettings setting;
+    if (setting.contains("profileManager4/geometry")) this->restoreGeometry(setting.value("profileManager4/geometry").toByteArray());
 }
 
 void ProfileManager4::on_pushButtonNew_clicked()
 {
-    ProfileManager4NewEdit *dialog = new ProfileManager4NewEdit();
-    connect(dialog, SIGNAL (newProfile(Profile4)), this, SLOT (registerProfile(Profile4)));
-    dialog->exec();
-}
-
-void ProfileManager4::registerProfile(Profile4 profile)
-{
-    profile.saveProfile();
-    model->addItem(profile);
-    emit updateProfiles();
-}
-
-void ProfileManager4::editProfile(Profile4 profile, Profile4 original)
-{
-    profile.updateProfile(original);
-    int r = ui->tableView->currentIndex().row();
-    model->updateProfile(profile, r);
-    emit updateProfiles();
-}
-
-void ProfileManager4::on_pushButtonOk_clicked()
-{
-    this->close();
+    QScopedPointer<ProfileEditor4> dialog(new ProfileEditor4);
+    if (dialog->exec() == QDialog::Accepted)
+    {
+        Profile4 profile = dialog->getNewProfile();
+        profile.saveProfile();
+        model->addItem(profile);
+        emit updateProfiles();
+    }
 }
 
 void ProfileManager4::on_pushButtonEdit_clicked()
 {
-    int r = ui->tableView->currentIndex().row();
-
-    if (r == -1)
+    int row = ui->tableView->currentIndex().row();
+    if (row < 0)
     {
         QMessageBox error;
         error.setText(tr("Please select a profile."));
@@ -98,16 +75,20 @@ void ProfileManager4::on_pushButtonEdit_clicked()
         return;
     }
 
-    ProfileManager4NewEdit *dialog = new ProfileManager4NewEdit(model->getProfile(r));
-    connect(dialog, SIGNAL (editProfile(Profile4, Profile4)), this, SLOT (editProfile(Profile4, Profile4)));
-    dialog->exec();
+    QScopedPointer<ProfileEditor4> dialog(new ProfileEditor4(model->getItem(row)));
+    if (dialog->exec() == QDialog::Accepted)
+    {
+        Profile4 profile = dialog->getNewProfile();
+        profile.updateProfile(dialog->getOriginal());
+        model->updateItem(profile, row);
+        emit updateProfiles();
+    }
 }
 
 void ProfileManager4::on_pushButtonDelete_clicked()
 {
-    int r = ui->tableView->currentIndex().row();
-
-    if (r == -1)
+    int row = ui->tableView->currentIndex().row();
+    if (row < 0)
     {
         QMessageBox error;
         error.setText(tr("Please select a profile."));
@@ -115,10 +96,13 @@ void ProfileManager4::on_pushButtonDelete_clicked()
         return;
     }
 
-    Profile4 profile = model->getProfile(r);
-    profile.deleteProfile();
+    QMessageBox message(QMessageBox::Question, tr("Delete profile"), tr("Are you sure you wish to delete this profile?"), QMessageBox::Yes | QMessageBox::No);
+    if (message.exec() == QMessageBox::Yes)
+    {
+        Profile4 profile = model->getItem(row);
+        profile.deleteProfile();
+        model->removeItem(row);
 
-    model->removeProfile(r);
-
-    emit updateProfiles();
+        emit updateProfiles();
+    }
 }

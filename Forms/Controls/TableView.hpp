@@ -1,6 +1,6 @@
 /*
  * This file is part of PokéFinder
- * Copyright (C) 2017 by Admiral_Fish, bumba, and EzPzStreamz
+ * Copyright (C) 2017-2019 by Admiral_Fish, bumba, and EzPzStreamz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -21,14 +21,17 @@
 #define TABLEVIEW_HPP
 
 #include <QTableView>
-#include <QHeaderView>
 
 class TableView : public QTableView
 {
 
 public:
-    TableView(QWidget *parent = 0) : QTableView(parent) {}
+    explicit TableView(QWidget *parent = nullptr);
     void resizeEvent(QResizeEvent *event) override;
+    void mouseDoubleClickEvent(QMouseEvent *event) override;
+    void keyPressEvent(QKeyEvent *event) override;
+    void outputModelTXT();
+    void outputModelCSV();
 
 };
 

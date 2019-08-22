@@ -1,6 +1,6 @@
 /*
  * This file is part of PokéFinder
- * Copyright (C) 2017 by Admiral_Fish, bumba, and EzPzStreamz
+ * Copyright (C) 2017-2019 by Admiral_Fish, bumba, and EzPzStreamz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,46 +20,35 @@
 #ifndef PROFILEMANAGER3_HPP
 #define PROFILEMANAGER3_HPP
 
-#include <QMainWindow>
-#include <Forms/Gen3/ProfileManager3NewEdit.hpp>
-#include <PokeFinderCore/Gen3/Profile3.hpp>
+#include <QWidget>
 #include <Models/Gen3/Profile3Model.hpp>
-
-using std::vector;
-typedef uint32_t u32;
 
 namespace Ui
 {
     class ProfileManager3;
 }
 
-class ProfileManager3 : public QMainWindow
+class ProfileManager3 : public QWidget
 {
     Q_OBJECT
-
-protected:
-    void changeEvent(QEvent *);
 
 signals:
     void updateProfiles();
 
+public:
+    explicit ProfileManager3(QWidget *parent = nullptr);
+    ~ProfileManager3() override;
+
 private:
     Ui::ProfileManager3 *ui;
-    Profile3Model *model = new Profile3Model(this);
+    Profile3Model *model{};
 
     void setupModels();
 
 private slots:
     void on_pushButtonNew_clicked();
-    void on_pushButtonOk_clicked();
-    void registerProfile(Profile3 profile);
-    void editProfile(Profile3 profile, Profile3 original);
     void on_pushButtonEdit_clicked();
     void on_pushButtonDelete_clicked();
-
-public:
-    explicit ProfileManager3(QWidget *parent = 0);
-    ~ProfileManager3();
 
 };
 

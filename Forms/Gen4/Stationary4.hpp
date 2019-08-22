@@ -1,6 +1,6 @@
 /*
  * This file is part of PokéFinder
- * Copyright (C) 2017 by Admiral_Fish, bumba, and EzPzStreamz
+ * Copyright (C) 2017-2019 by Admiral_Fish, bumba, and EzPzStreamz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,77 +20,50 @@
 #ifndef STATIONARY4_HPP
 #define STATIONARY4_HPP
 
-#include <PokeFinderCore/Gen4/Frame4.hpp>
-#include <PokeFinderCore/Gen4/Generator4.hpp>
-#include <PokeFinderCore/Gen4/Searcher4.hpp>
-#include <PokeFinderCore/Objects/FrameCompare.hpp>
-#include <PokeFinderCore/Objects/Nature.hpp>
-#include <PokeFinderCore/Objects/Power.hpp>
-#include <PokeFinderCore/Gen4/Profile4.hpp>
-#include <Forms/Gen4/ProfileManager4.hpp>
-#include <Models/Gen4/Stationary4Model.hpp>
-#include <Models/Gen4/Searcher4Model.hpp>
-#include <PokeFinderCore/Translator.hpp>
-#include <thread>
 #include <QMenu>
-#include <QAction>
-#include <QModelIndex>
-#include <QFileDialog>
-#include <QClipboard>
-#include <QSettings>
+#include <Core/Gen4/Profile4.hpp>
+#include <Models/Gen4/Searcher4Model.hpp>
+#include <Models/Gen4/Stationary4Model.hpp>
 
 namespace Ui
 {
     class Stationary4;
 }
 
-class Stationary4 : public QMainWindow
+class Stationary4 : public QWidget
 {
     Q_OBJECT
 
-protected:
-    void changeEvent(QEvent *);
-
 signals:
     void alertProfiles(int);
-    void updateView(vector<Frame4>);
-    void updateProgress();
+
+public:
+    explicit Stationary4(QWidget *parent = nullptr);
+    ~Stationary4() override;
+    void updateProfiles();
 
 private:
     Ui::Stationary4 *ui;
-    Searcher4Model *s = new Searcher4Model(this, Method1);
-    Stationary4Model *g = new Stationary4Model(this, Method1);
-    bool isSearching = false;
-    bool cancel = false;
-    u32 progress;
-    vector<Profile4> profiles;
-    //QMenu *generatorMenu = new QMenu();
-    //QMenu *searcherMenu = new QMenu();
-    //QModelIndex lastIndex;
-    //QModelIndex targetFrame;
+    Searcher4Model *searcherModel{};
+    Stationary4Model *generatorModel{};
+    QVector<Profile4> profiles;
+    QMenu *generatorMenu{};
+    QMenu *searcherMenu{};
 
-    void search();
     void setupModels();
-    void updateSearch();
 
 private slots:
-    void on_generate_clicked();
+    void updateProgress(const QVector<Frame4> &frames, int progress);
     void refreshProfiles();
+    void on_pushButtonGenerate_clicked();
+    void on_pushButtonSearch_clicked();
     void on_comboBoxProfiles_currentIndexChanged(int index);
-    void on_anyNatureGenerator_clicked();
-    void on_anyHiddenPowerGenerator_clicked();
-    void on_search_clicked();
-    void on_anyNatureSearcher_clicked();
-    void on_anyHiddenPowerSearcher_clicked();
+    void on_pushButtonGeneratorLead_clicked();
+    void seedToTime();
+    void on_tableViewGenerator_customContextMenuRequested(const QPoint &pos);
+    void on_tableViewSearcher_customContextMenuRequested(const QPoint &pos);
     void on_pushButtonProfileManager_clicked();
-    void updateProgressBar();
-    void updateViewSearcher(vector<Frame4> frames);
-    void on_pushButtonLeadGenerator_clicked();
 
-public:
-    explicit Stationary4(QWidget *parent = 0);
-    ~Stationary4();
-    void updateProfiles();
 };
 
 #endif // STATIONARY4_HPP

@@ -1,6 +1,6 @@
 /*
  * This file is part of PokéFinder
- * Copyright (C) 2017 by Admiral_Fish, bumba, and EzPzStreamz
+ * Copyright (C) 2017-2019 by Admiral_Fish, bumba, and EzPzStreamz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -17,16 +17,39 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#include "Forms/MainWindow.hpp"
 #include <QApplication>
-#include <QStyleFactory>
+#include <QFile>
+#include <QSettings>
+#include <QTextStream>
+#include <QTranslator>
+#include <Forms/MainWindow.hpp>
 
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-    a.setStyle(QStyleFactory::create("Fusion"));
     a.setApplicationName("PokeFinder");
     a.setOrganizationName("PokeFinder Team");
+
+    QSettings setting;
+    if (setting.contains("style")) setting.clear();
+
+    QString style = setting.value("settings/style", "dark").toString();
+    if (style == "dark")
+    {
+        QFile file(":/qdarkstyle/style.qss");
+        if (file.open(QIODevice::ReadOnly | QIODevice::Text))
+        {
+            QTextStream ts(&file);
+            a.setStyleSheet(ts.readAll());
+            file.close();
+        }
+    }
+
+    QTranslator translator;
+    if (translator.load(QString(":/i18n/PokeFinder_%1.qm").arg(setting.value("settings/locale", "en").toString())))
+    {
+        QApplication::installTranslator(&translator);
+    }
 
     MainWindow w;
     w.show();

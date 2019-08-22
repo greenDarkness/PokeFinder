@@ -1,6 +1,6 @@
 /*
  * This file is part of PokéFinder
- * Copyright (C) 2017 by Admiral_Fish, bumba, and EzPzStreamz
+ * Copyright (C) 2017-2019 by Admiral_Fish, bumba, and EzPzStreamz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -17,98 +17,85 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+#include <QSettings>
 #include "IDs3.hpp"
 #include "ui_IDs3.h"
+#include <Core/RNG/LCRNG.hpp>
+#include <Core/Util/Utilities.hpp>
 
 IDs3::IDs3(QWidget *parent) :
-    QMainWindow(parent),
+    QWidget(parent),
     ui(new Ui::IDs3)
 {
     ui->setupUi(this);
     setAttribute(Qt::WA_QuitOnClose, false);
-    setWindowFlags(Qt::Widget | Qt::MSWindowsFixedSizeDialogHint);
 
     setupModels();
 }
 
 IDs3::~IDs3()
 {
-    delete ui;
-    delete xdcolo;
-    delete frlge;
-    delete rs;
-}
+    QSettings setting;
+    setting.setValue("ids3/geometry", this->saveGeometry());
 
-void IDs3::changeEvent(QEvent *event)
-{
-    if (event != NULL)
-    {
-        switch (event->type())
-        {
-            case QEvent::LanguageChange:
-                ui->retranslateUi(this);
-                break;
-            default:
-                break;
-        }
-    }
+    delete ui;
 }
 
 void IDs3::setupModels()
 {
-    ui->textBoxPIDFRLGE->setValues(0, 32, false);
-    ui->textBoxTIDFRLGE->setValues(0, 48, true);
-    ui->textBoxSIDFRLGE->setValues(0, 48, true);
-    ui->textBoxMinFrameFRLGE->setValues(0, 32, true);
-    ui->textBoxMaxFrameFRLGE->setValues(0, 32, true);
+    xdcolo = new QStandardItemModel(ui->tableViewXDColo);
+    frlge = new QStandardItemModel(ui->tableViewFRLGE);
+    rs = new QStandardItemModel(ui->tableViewFRLGE);
 
-    ui->textBoxPIDRS->setValues(0, 32, false);
-    ui->textBoxTIDRS->setValues(0, 48, true);
-    ui->textBoxSIDRS->setValues(0, 48, true);
-    ui->textBoxInitSeedRS->setValues(0, 48, false);
-    ui->textBoxMinFrameRS->setValues(0, 32, true);
-    ui->textBoxMaxFrameRS->setValues(0, 32, true);
+    ui->textBoxFRLGEPID->setValues(InputType::Seed32Bit);
+    ui->textBoxFRLGETID->setValues(InputType::TIDSID);
+    ui->textBoxFRLGESID->setValues(InputType::TIDSID);
+    ui->textBoxFRLGEStartingFrame->setValues(InputType::Frame32Bit);
+    ui->textBoxFRLGEMaxResults->setValues(InputType::Frame32Bit);
 
-    ui->textBoxPIDXD->setValues(0, 32, false);
-    ui->textBoxTIDXD->setValues(0, 48, true);
-    ui->textBoxSIDXD->setValues(0, 48, true);
-    ui->textBoxSeedXD->setValues(0, 48, false);
-    ui->textBoxMinFrameXD->setValues(0, 32, true);
-    ui->textBoxMaxFrameXD->setValues(0, 32, true);
+    ui->textBoxRSPID->setValues(InputType::Seed32Bit);
+    ui->textBoxRSTID->setValues(InputType::TIDSID);
+    ui->textBoxRSSID->setValues(InputType::TIDSID);
+    ui->textBoxRSInitialSeed->setValues(InputType::Seed16Bit);
+    ui->textBoxRSStartingFrame->setValues(InputType::Frame32Bit);
+    ui->textBoxRSMaxResults->setValues(InputType::Frame32Bit);
+
+    ui->textBoxXDColoPID->setValues(InputType::Seed32Bit);
+    ui->textBoxXDColoTID->setValues(InputType::TIDSID);
+    ui->textBoxXDColoSID->setValues(InputType::TIDSID);
+    ui->textBoxXDColoSeed->setValues(InputType::Seed32Bit);
+    ui->textBoxXDColoStartingFrame->setValues(InputType::Frame32Bit);
+    ui->textBoxXDColoMaxResults->setValues(InputType::Frame32Bit);
 
     ui->dateTimeEdit->setDisplayFormat(QLocale::system().dateTimeFormat(QLocale::ShortFormat));
 
     xdcolo->setHorizontalHeaderLabels(QStringList() << tr("Frame") << tr("TID") << tr("SID"));
     ui->tableViewXDColo->setModel(xdcolo);
-    ui->tableViewXDColo->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
 
     frlge->setHorizontalHeaderLabels(QStringList() << tr("Frame") << tr("TID") << tr("SID"));
     ui->tableViewFRLGE->setModel(frlge);
-    ui->tableViewFRLGE->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
 
     rs->setHorizontalHeaderLabels(QStringList() << tr("Frame") << tr("TID") << tr("SID"));
     ui->tableViewRS->setModel(rs);
-    ui->tableViewRS->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+
+    QSettings setting;
+    if (setting.contains("ids3/geometry")) this->restoreGeometry(setting.value("ids3/geometry").toByteArray());
 }
 
-void IDs3::on_pushButtonFindFRLGE_clicked()
+void IDs3::on_pushButtonFRLGESearch_clicked()
 {
     frlge->removeRows(0, frlge->rowCount());
 
-    u32 tid = ui->textBoxTIDFRLGE->text().toUInt();
-    bool usePID = ui->checkBoxPIDFRLGE->isChecked();
-    bool useSID = ui->checkBoxSIDFRLGE->isChecked();
-    u32 pid = ui->textBoxPIDFRLGE->text().toUInt(NULL, 16);
-    u32 searchSID = ui->textBoxSIDFRLGE->text().toUInt();
+    u16 tid = ui->textBoxFRLGETID->getUShort();
+    bool usePID = ui->checkBoxFRLGEPID->isChecked();
+    bool useSID = ui->checkBoxFRLGESID->isChecked();
+    u32 pid = ui->textBoxFRLGEPID->getUInt();
+    u16 searchSID = ui->textBoxFRLGESID->getUShort();
+    u32 minFrame = ui->textBoxFRLGEStartingFrame->getUInt();
+    u32 maxResults = ui->textBoxFRLGEMaxResults->getUInt();
 
-    LCRNG rng = PokeRNG(tid);
-
-    u32 minFrame = ui->textBoxMinFrameFRLGE->text().toUInt();
-    u32 maxResults = ui->textBoxMaxFrameFRLGE->text().toUInt();
-
-    rng.advanceFrames(minFrame - 1);
-
-    u32 sid = rng.nextUShort();
+    PokeRNG rng(tid, minFrame - 1);
+    u16 sid = rng.nextUShort();
 
     u32 max = minFrame + maxResults;
     for (u32 frame = minFrame; frame <= max; ++frame)
@@ -116,36 +103,38 @@ void IDs3::on_pushButtonFindFRLGE_clicked()
         sid = rng.nextUShort();
 
         if ((!usePID || Utilities::shiny(pid, tid, sid)) && (!useSID || searchSID == sid))
+        {
             frlge->appendRow(QList<QStandardItem *>() << new QStandardItem(QString::number(frame)) << new QStandardItem(QString::number(tid)) << new QStandardItem(QString::number(sid)));
+        }
     }
 }
 
-void IDs3::on_pushButtonFindRS_clicked()
+void IDs3::on_pushButtonRSSearch_clicked()
 {
     rs->removeRows(0, rs->rowCount());
 
     u32 seed;
-    bool usePID = ui->checkBoxPIDRS->isChecked();
-    bool useSID = ui->checkBoxSIDRS->isChecked();
-    bool useTID = ui->checkBoxTIDRS->isChecked();
-    u32 pid = ui->textBoxPIDRS->text().toUInt(NULL, 16);
-    u32 searchSID = ui->textBoxSIDRS->text().toUInt();
-    u32 searchTID = ui->textBoxTIDRS->text().toUInt();
+    bool usePID = ui->checkBoxRSPID->isChecked();
+    bool useSID = ui->checkBoxRSSID->isChecked();
+    bool useTID = ui->checkBoxRSTID->isChecked();
+    u32 pid = ui->textBoxRSPID->getUInt();
+    u16 searchSID = ui->textBoxRSSID->getUShort();
+    u16 searchTID = ui->textBoxRSTID->getUShort();
+    u32 minFrame = ui->textBoxRSStartingFrame->getUInt();
+    u32 maxResults = ui->textBoxRSMaxResults->getUInt();
 
-    u32 minFrame = ui->textBoxMinFrameRS->text().toUInt();
-    u32 maxResults = ui->textBoxMaxFrameRS->text().toUInt();
-
-    if (ui->radioButtonInitSeedRS->isChecked())
-        seed = ui->textBoxInitSeedRS->text().toUInt(NULL, 16);
+    if (ui->radioButtonRSInitialSeed->isChecked())
+    {
+        seed = ui->textBoxRSInitialSeed->getUInt();
+    }
     else
+    {
         seed = Utilities::calcGen3Seed(ui->dateTimeEdit->date(), ui->dateTimeEdit->time().hour(), ui->dateTimeEdit->time().minute());
+    }
 
-    LCRNG rng = PokeRNG(seed);
+    PokeRNG rng(seed, minFrame);
 
-    rng.advanceFrames(minFrame);
-
-    u32 tid = rng.nextUShort();
-    u32 sid;
+    u16 tid = rng.nextUShort(), sid;
 
     u32 max = minFrame + maxResults;
     for (u32 frame = minFrame; frame <= max; ++frame)
@@ -154,31 +143,28 @@ void IDs3::on_pushButtonFindRS_clicked()
         tid = rng.nextUShort();
 
         if ((!usePID || Utilities::shiny(pid, tid, sid)) && (!useTID || searchTID == tid) && (!useSID || searchSID == sid))
+        {
             rs->appendRow(QList<QStandardItem *>() << new QStandardItem(QString::number(frame)) << new QStandardItem(QString::number(tid)) << new QStandardItem(QString::number(sid)));
+        }
     }
 }
 
-void IDs3::on_pushButtonFindXD_clicked()
+void IDs3::on_pushButtonXDColoSearch_clicked()
 {
     xdcolo->removeRows(0, xdcolo->rowCount());
 
-    u32 seed = ui->textBoxSeedXD->text().toUInt(NULL, 16);
-    bool usePID = ui->checkBoxPIDXD->isChecked();
-    bool useSID = ui->checkBoxSIDXD->isChecked();
-    bool useTID = ui->checkBoxTIDXD->isChecked();
-    u32 pid = ui->textBoxPIDXD->text().toUInt(NULL, 16);
-    u32 searchSID = ui->textBoxSIDXD->text().toUInt();
-    u32 searchTID = ui->textBoxTIDXD->text().toUInt();
+    u32 seed = ui->textBoxXDColoSeed->getUInt();
+    bool usePID = ui->checkBoxXDColoPID->isChecked();
+    bool useSID = ui->checkBoxXDColoSID->isChecked();
+    bool useTID = ui->checkBoxXDColoTID->isChecked();
+    u32 pid = ui->textBoxXDColoPID->getUInt();
+    u16 searchSID = ui->textBoxXDColoSID->getUShort();
+    u16 searchTID = ui->textBoxXDColoTID->getUShort();
+    u32 minFrame = ui->textBoxXDColoStartingFrame->getUInt();
+    u32 maxResults = ui->textBoxXDColoMaxResults->getUInt();
 
-    u32 minFrame = ui->textBoxMinFrameXD->text().toUInt();
-    u32 maxResults = ui->textBoxMaxFrameXD->text().toUInt();
-
-    LCRNG rng = XDRNG(seed);
-
-    rng.advanceFrames(minFrame + 1);
-
-    u32 sid = rng.nextUShort();
-    u32 tid;
+    XDRNG rng(seed, minFrame + 1);
+    u16 sid = rng.nextUShort(), tid;
 
     u32 max = minFrame + maxResults;
     for (u32 frame = minFrame; frame <= max; ++frame)
@@ -187,104 +173,26 @@ void IDs3::on_pushButtonFindXD_clicked()
         sid = rng.nextUShort();
 
         if ((!usePID || Utilities::shiny(pid, tid, sid)) && (!useTID || searchTID == tid) && (!useSID || searchSID == sid))
+        {
             xdcolo->appendRow(QList<QStandardItem *>() << new QStandardItem(QString::number(frame)) << new QStandardItem(QString::number(tid)) << new QStandardItem(QString::number(sid)));
+        }
     }
 }
 
-void IDs3::on_checkBoxBattery_stateChanged(int arg1)
+void IDs3::on_checkBoxRSDeadBattery_clicked(bool checked)
 {
-    if (arg1 == Qt::Unchecked)
-    {
-        ui->radioButtonDateRS->setEnabled(true);
-        ui->radioButtonInitSeedRS->setEnabled(true);
-        on_radioButtonDateRS_toggled(ui->radioButtonDateRS->isChecked());
-        on_radioButtonInitSeedRS_toggled(ui->radioButtonInitSeedRS->isChecked());
-    }
-    else
-    {
-        ui->radioButtonDateRS->setEnabled(false);
-        ui->radioButtonInitSeedRS->setEnabled(false);
-        on_radioButtonDateRS_toggled(false);
-        on_radioButtonInitSeedRS_toggled(false);
-    }
+    ui->radioButtonRSDate->setEnabled(!checked);
+    ui->radioButtonRSInitialSeed->setEnabled(!checked);
+    ui->dateTimeEdit->setEnabled(!checked ? ui->radioButtonRSDate->isChecked() : false);
+    ui->textBoxRSInitialSeed->setEnabled(!checked ? ui->radioButtonRSInitialSeed->isChecked() : false);
 }
 
-void IDs3::on_checkBoxPIDRS_stateChanged(int arg1)
+void IDs3::on_radioButtonRSDate_toggled(bool checked)
 {
-    if (arg1 == Qt::Checked)
-        ui->textBoxPIDRS->setEnabled(true);
-    else
-        ui->textBoxPIDRS->setEnabled(false);
+    ui->dateTimeEdit->setEnabled(checked);
 }
 
-void IDs3::on_checkBoxTIDRS_stateChanged(int arg1)
+void IDs3::on_radioButtonRSInitialSeed_toggled(bool checked)
 {
-    if (arg1 == Qt::Checked)
-        ui->textBoxTIDRS->setEnabled(true);
-    else
-        ui->textBoxTIDRS->setEnabled(false);
-}
-
-void IDs3::on_checkBoxSIDRS_stateChanged(int arg1)
-{
-    if (arg1 == Qt::Checked)
-        ui->textBoxSIDRS->setEnabled(true);
-    else
-        ui->textBoxSIDRS->setEnabled(false);
-}
-
-void IDs3::on_checkBoxPIDXD_stateChanged(int arg1)
-{
-    if (arg1 == Qt::Checked)
-        ui->textBoxPIDXD->setEnabled(true);
-    else
-        ui->textBoxPIDXD->setEnabled(false);
-}
-
-void IDs3::on_checkBoxTIDXD_stateChanged(int arg1)
-{
-    if (arg1 == Qt::Checked)
-        ui->textBoxTIDXD->setEnabled(true);
-    else
-        ui->textBoxTIDXD->setEnabled(false);
-}
-
-void IDs3::on_checkBoxSIDXD_stateChanged(int arg1)
-{
-    if (arg1 == Qt::Checked)
-        ui->textBoxSIDXD->setEnabled(true);
-    else
-        ui->textBoxSIDXD->setEnabled(false);
-}
-
-void IDs3::on_checkBoxPIDFRLGE_stateChanged(int arg1)
-{
-    if (arg1 == Qt::Checked)
-        ui->textBoxPIDFRLGE->setEnabled(true);
-    else
-        ui->textBoxPIDFRLGE->setEnabled(false);
-}
-
-void IDs3::on_checkBoxSIDFRLGE_stateChanged(int arg1)
-{
-    if (arg1 == Qt::Checked)
-        ui->textBoxSIDFRLGE->setEnabled(true);
-    else
-        ui->textBoxSIDFRLGE->setEnabled(false);
-}
-
-void IDs3::on_radioButtonDateRS_toggled(bool checked)
-{
-    if (checked)
-        ui->dateTimeEdit->setEnabled(true);
-    else
-        ui->dateTimeEdit->setEnabled(false);
-}
-
-void IDs3::on_radioButtonInitSeedRS_toggled(bool checked)
-{
-    if (checked)
-        ui->textBoxInitSeedRS->setEnabled(true);
-    else
-        ui->textBoxInitSeedRS->setEnabled(false);
+    ui->textBoxRSInitialSeed->setEnabled(checked);
 }

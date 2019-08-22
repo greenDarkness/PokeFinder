@@ -1,6 +1,6 @@
 /*
  * This file is part of PokéFinder
- * Copyright (C) 2017 by Admiral_Fish, bumba, and EzPzStreamz
+ * Copyright (C) 2017-2019 by Admiral_Fish, bumba, and EzPzStreamz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,94 +20,64 @@
 #ifndef WILD4_HPP
 #define WILD4_HPP
 
-#include <PokeFinderCore/Gen4/Frame4.hpp>
-#include <PokeFinderCore/Gen4/Generator4.hpp>
-#include <PokeFinderCore/Gen4/Searcher4.hpp>
-#include <PokeFinderCore/Objects/FrameCompare.hpp>
-#include <PokeFinderCore/Objects/Nature.hpp>
-#include <PokeFinderCore/Objects/Power.hpp>
-#include <PokeFinderCore/Gen4/Profile4.hpp>
-#include <Forms/Gen4/ProfileManager4.hpp>
-//#include <PokeFinderCore/Gen4/EncounterArea4.hpp>
-#include <PokeFinderCore/Translator.hpp>
-#include <Models/Gen4/Wild4Model.hpp>
-#include <Models/Gen4/Searcher4Model.hpp>
 #include <QMenu>
-#include <thread>
-#include <QFileDialog>
-#include <QSettings>
+#include <Core/Gen4/EncounterArea4.hpp>
+#include <Core/Gen4/Profile4.hpp>
+#include <Models/Gen4/Searcher4Model.hpp>
+#include <Models/Gen4/Wild4Model.hpp>
 
 namespace Ui
 {
     class Wild4;
 }
 
-class Wild4 : public QMainWindow
+class Wild4 : public QWidget
 {
     Q_OBJECT
 
-protected:
-    void changeEvent(QEvent *);
-
 signals:
-    void updateView(vector<Frame4>);
     void alertProfiles(int);
-    void updateProgress();
+
+public:
+    explicit Wild4(QWidget *parent = nullptr);
+    ~Wild4() override;
+    void updateProfiles();
 
 private:
     Ui::Wild4 *ui;
-    vector<Profile4> profiles;
-    bool isSearching = false;
-    bool cancel = false;
-    u32 progress;
-    Searcher4Model *s = new Searcher4Model(this, Method1);
-    Wild4Model *g = new Wild4Model(this, MethodJ);
-    //QMenu *contextMenu = new QMenu(this);
-    //QModelIndex lastIndex;
-    //QModelIndex targetFrame;
-    //vector<EncounterArea4> encounterGenerator;
-    //vector<EncounterArea4> encounterSearcher;
+    QVector<Profile4> profiles;
+    Searcher4Model *searcherModel{};
+    Wild4Model *generatorModel{};
+    QMenu *generatorMenu{};
+    QMenu *searcherMenu{};
+    QVector<EncounterArea4> encounterGenerator;
+    QVector<EncounterArea4> encounterSearcher;
 
     void setupModels();
-    void search();
-    void updateSearch();
-    //void updateLocationsSearcher();
-    //void updatePokemonSearcher();
-    //void updateLocationsGenerator();
-    //void updatePokemonGenerator();
+    void updateLocationsGenerator();
+    void updateLocationsSearcher();
+    void updatePokemonGenerator();
+    void updatePokemonSearcher();
 
 private slots:
-    void on_generate_clicked();
+    void updateProgress(const QVector<Frame4> &frames, int progress);
     void refreshProfiles();
-    void on_anyNatureGenerator_clicked();
-    void on_anyHiddenPowerGenerator_clicked();
-    void on_search_clicked();
-    void on_anyNatureSearcher_clicked();
-    void on_anyHiddenPowerSearcher_clicked();
-    void updateViewSearcher(vector<Frame4> frames);
+    void on_pushButtonGenerate_clicked();
+    void on_pushButtonSearch_clicked();
     void on_comboBoxProfiles_currentIndexChanged(int index);
-    //void on_tableViewGenerator_customContextMenuRequested(const QPoint &pos);
-    //void setTargetFrameGenerator();
-    //void jumpToTargetGenerator();
-    //void centerFramesAndSetTargetGenerator(u32 centerFrames);
-    //void outputToTxt();
-    //void outputToCSV();
-    void updateProgressBar();
-    void on_pushButtonLeadGenerator_clicked();
+    void on_pushButtonGeneratorLead_clicked();
+    void on_comboBoxGeneratorEncounter_currentIndexChanged(int index);
+    void on_comboBoxSearcherEncounter_currentIndexChanged(int index);
+    void on_comboBoxGeneratorLocation_currentIndexChanged(int index);
+    void on_comboBoxSearcherLocation_currentIndexChanged(int index);
+    void on_comboBoxGeneratorPokemon_currentIndexChanged(int index);
+    void on_comboBoxSearcherPokemon_currentIndexChanged(int index);
+    void on_comboBoxGeneratorTime_currentIndexChanged(int index);
+    void on_comboBoxSearcherTime_currentIndexChanged(int index);
+    void seedToTime();
+    void on_tableViewGenerator_customContextMenuRequested(const QPoint &pos);
+    void on_tableViewSearcher_customContextMenuRequested(const QPoint &pos);
     void on_pushButtonProfileManager_clicked();
-    void on_comboBoxEncounterGenerator_currentIndexChanged(int index);
-    void on_anySlotGenerator_clicked();
-    void on_comboBoxEncounterSearcher_currentIndexChanged(int index);
-    void on_anySlotSearcher_clicked();
-    void on_comboBoxLocationSearcher_currentIndexChanged(int index);
-    void on_comboBoxPokemonSearcher_currentIndexChanged(int index);
-    void on_comboBoxLocationGenerator_currentIndexChanged(int index);
-    void on_comboBoxPokemonGenerator_currentIndexChanged(int index);
-
-public:
-    explicit Wild4(QWidget *parent = 0);
-    ~Wild4();
-    void updateProfiles();
 
 };
 

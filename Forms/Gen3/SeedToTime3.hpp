@@ -1,6 +1,6 @@
 /*
  * This file is part of PokéFinder
- * Copyright (C) 2017 by Admiral_Fish, bumba, and EzPzStreamz
+ * Copyright (C) 2017-2019 by Admiral_Fish, bumba, and EzPzStreamz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,45 +20,35 @@
 #ifndef SEEDTOTIME3_HPP
 #define SEEDTOTIME3_HPP
 
-#include <QMainWindow>
 #include <QStandardItemModel>
-#include <QDateTime>
-#include <QList>
-#include <QStandardItem>
-#include <QMessageBox>
-#include <QSettings>
-#include <PokeFinderCore/RNG/LCRNG.hpp>
-
-typedef uint32_t u32;
+#include <QWidget>
+#include <Core/Util/Global.hpp>
 
 namespace Ui
 {
     class SeedToTime3;
 }
 
-class SeedToTime3 : public QMainWindow
+class SeedToTime3 : public QWidget
 {
     Q_OBJECT
 
-protected:
-    void changeEvent(QEvent *);
+public:
+    explicit SeedToTime3(QWidget *parent = nullptr);
+    explicit SeedToTime3(u32 seed, QWidget *parent = nullptr);
+    ~SeedToTime3() override;
 
 private:
     Ui::SeedToTime3 *ui;
-    QStandardItemModel *model = new QStandardItemModel(this);
+    QStandardItemModel *model{};
     u32 frame = 1;
 
     void setupModels();
-    u32 originSeed(u32 seed);
+    u16 originSeed(u32 seed);
     void seedToTime(u32 seed, u32 year);
 
 private slots:
     void on_pushButtonFind_clicked();
-
-public:
-    explicit SeedToTime3(QWidget *parent = 0);
-    explicit SeedToTime3(u32 seed, QWidget *parent = 0);
-    ~SeedToTime3();
 
 };
 

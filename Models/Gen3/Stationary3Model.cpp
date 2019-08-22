@@ -1,6 +1,6 @@
 /*
  * This file is part of PokéFinder
- * Copyright (C) 2017 by Admiral_Fish, bumba, and EzPzStreamz
+ * Copyright (C) 2017-2019 by Admiral_Fish, bumba, and EzPzStreamz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -18,40 +18,15 @@
  */
 
 #include "Stationary3Model.hpp"
+#include <Util/TableUtility.hpp>
 
-Stationary3Model::Stationary3Model(QObject *parent) : QAbstractTableModel(parent)
+Stationary3Model::Stationary3Model(QObject *parent) :
+    TableModel<Frame3>(parent)
 {
 }
 
-void Stationary3Model::setModel(vector<Frame3> frames)
+int Stationary3Model::columnCount(const QModelIndex & /*parent*/) const
 {
-    if (frames.empty())
-        return;
-    int i = rowCount();
-    emit beginInsertRows(QModelIndex(), i, i + frames.size() - 1);
-    model.insert(model.end(), frames.begin(), frames.end());
-    emit endInsertRows();
-}
-
-void Stationary3Model::clear()
-{
-    if (model.empty())
-        return;
-    emit beginRemoveRows(QModelIndex(), 0, rowCount() - 1);
-    model.clear();
-    model.shrink_to_fit();
-    emit endRemoveRows();
-}
-
-int Stationary3Model::rowCount(const QModelIndex &parent) const
-{
-    (void) parent;
-    return (int)model.size();
-}
-
-int Stationary3Model::columnCount(const QModelIndex &parent) const
-{
-    (void) parent;
     return 15;
 }
 
@@ -59,41 +34,58 @@ QVariant Stationary3Model::data(const QModelIndex &index, int role) const
 {
     if (role == Qt::DisplayRole)
     {
-        int row = index.row();
-        int column = index.column();
-        Frame3 frame = model[row];
-        switch (column)
+        auto frame = model.at(index.row());
+        switch (index.column())
         {
             case 0:
-                return frame.frame;
+                return frame.getFrame();
             case 1:
-                return QString::number(frame.pid, 16).toUpper().rightJustified(8, '0');
+                return QString::number(frame.getPID(), 16).toUpper().rightJustified(8, '0');
             case 2:
-                return frame.getShiny();
+                return frame.getShinyString();
             case 3:
-                return frame.getNature();
+                return frame.getNatureString();
             case 4:
-                return frame.ability;
+                return frame.getAbility();
             case 5:
-                return frame.ivs[0];
+                return frame.getIV(0);
             case 6:
-                return frame.ivs[1];
+                return frame.getIV(1);
             case 7:
-                return frame.ivs[2];
+                return frame.getIV(2);
             case 8:
-                return frame.ivs[3];
+                return frame.getIV(3);
             case 9:
-                return frame.ivs[4];
+                return frame.getIV(4);
             case 10:
-                return frame.ivs[5];
+                return frame.getIV(5);
             case 11:
-                return frame.getPower();
+                return frame.getPowerString();
             case 12:
-                return frame.power;
+                return frame.getPower();
             case 13:
-                return frame.getGender();
+                return frame.getGenderString();
             case 14:
                 return frame.getTime();
+        }
+    }
+    else if (role == Qt::FontRole)
+    {
+        auto frame = model.at(index.row());
+        switch (index.column())
+        {
+            case 5:
+                return TableUtility::getBold(frame.getIV(0));
+            case 6:
+                return TableUtility::getBold(frame.getIV(1));
+            case 7:
+                return TableUtility::getBold(frame.getIV(2));
+            case 8:
+                return TableUtility::getBold(frame.getIV(3));
+            case 9:
+                return TableUtility::getBold(frame.getIV(4));
+            case 10:
+                return TableUtility::getBold(frame.getIV(5));
         }
     }
     return QVariant();
@@ -101,44 +93,9 @@ QVariant Stationary3Model::data(const QModelIndex &index, int role) const
 
 QVariant Stationary3Model::headerData(int section, Qt::Orientation orientation, int role) const
 {
-    if (role == Qt::DisplayRole)
+    if (role == Qt::DisplayRole && orientation == Qt::Horizontal)
     {
-        if (orientation == Qt::Horizontal)
-        {
-            switch (section)
-            {
-                case 0:
-                    return tr("Frame");
-                case 1:
-                    return tr("PID");
-                case 2:
-                    return "!!!";
-                case 3:
-                    return tr("Nature");
-                case 4:
-                    return tr("Ability");
-                case 5:
-                    return tr("HP");
-                case 6:
-                    return tr("Atk");
-                case 7:
-                    return tr("Def");
-                case 8:
-                    return tr("SpA");
-                case 9:
-                    return tr("SpD");
-                case 10:
-                    return tr("Spe");
-                case 11:
-                    return tr("Hidden");
-                case 12:
-                    return tr("Power");
-                case 13:
-                    return tr("Gender");
-                case 14:
-                    return tr("Time");
-            }
-        }
+        return header.at(section);
     }
     return QVariant();
 }

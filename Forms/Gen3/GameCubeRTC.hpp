@@ -1,6 +1,6 @@
 /*
  * This file is part of PokéFinder
- * Copyright (C) 2017 by Admiral_Fish, bumba, and EzPzStreamz
+ * Copyright (C) 2017-2019 by Admiral_Fish, bumba, and EzPzStreamz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,60 +20,38 @@
 #ifndef GAMECUBERTC_HPP
 #define GAMECUBERTC_HPP
 
-#include <QMainWindow>
-#include <QStandardItemModel>
-#include <QStandardItem>
-#include <thread>
-#include <QList>
-#include <PokeFinderCore/RNG/LCRNG.hpp>
-#include <QDateTime>
-#include <QDate>
-#include <QTime>
 #include <QMenu>
-#include <QAction>
-#include <QModelIndex>
-#include <QClipboard>
-#include <QSettings>
-
-typedef uint32_t u32;
+#include <QStandardItemModel>
+#include <Core/Util/Global.hpp>
 
 namespace Ui
 {
     class GameCubeRTC;
 }
 
-class GameCubeRTC : public QMainWindow
+class Search;
+
+class GameCubeRTC : public QWidget
 {
     Q_OBJECT
 
-protected:
-    void changeEvent(QEvent *);
-
-signals:
-    void updateView(QList<QStandardItem *>);
+public:
+    explicit GameCubeRTC(QWidget *parent = nullptr);
+    explicit GameCubeRTC(u32 seed, QWidget *parent = nullptr);
+    ~GameCubeRTC() override;
 
 private:
     Ui::GameCubeRTC *ui;
-    bool isSearching = false;
-    bool cancel = false;
-    QStandardItemModel *model = new QStandardItemModel(this);
-    QDateTime date = QDateTime(QDate(2000, 1, 1), QTime(0, 0));
-    QMenu *contextMenu = new QMenu();
-    QModelIndex lastIndex;
-    QModelIndex targetFrame;
+    QStandardItemModel *model{};
+    QMenu *contextMenu{};
 
     void setupModels();
-    void calcRTC();
 
 private slots:
     void on_pushButtonSearch_clicked();
-    void updateTableView(QList<QStandardItem *> row);
+    void updateTableView(const QList<QStandardItem *> &row);
     void copySeed();
-    void on_tableViewGenerator_customContextMenuRequested(const QPoint &pos);
-
-public:
-    explicit GameCubeRTC(QWidget *parent = 0);
-    ~GameCubeRTC();
+    void on_tableView_customContextMenuRequested(const QPoint &pos);
 
 };
 

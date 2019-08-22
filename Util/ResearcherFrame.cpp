@@ -1,6 +1,6 @@
 /*
  * This file is part of PokéFinder
- * Copyright (C) 2017 by Admiral_Fish, bumba, and EzPzStreamz
+ * Copyright (C) 2017-2019 by Admiral_Fish, bumba, and EzPzStreamz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -19,11 +19,18 @@
 
 #include "ResearcherFrame.hpp"
 
+ResearcherFrame::ResearcherFrame()
+{
+    custom = QVector<u64>(10, 0);
+    rng64Bit = false;
+    full32 = 0;
+    full64 = 0;
+    frame = 100000;
+}
+
 ResearcherFrame::ResearcherFrame(bool rng64Bit, u32 frame)
 {
-    for (int i = 0; i < 10; i++)
-        custom[i] = 0;
-
+    custom = QVector<u64>(10, 0);
     this->rng64Bit = rng64Bit;
     full32 = 0;
     full64 = 0;

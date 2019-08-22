@@ -1,6 +1,6 @@
 /*
  * This file is part of PokéFinder
- * Copyright (C) 2017 by Admiral_Fish, bumba, and EzPzStreamz
+ * Copyright (C) 2017-2019 by Admiral_Fish, bumba, and EzPzStreamz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,27 +20,24 @@
 #ifndef PROFILE3MODEL_HPP
 #define PROFILE3MODEL_HPP
 
-#include <QAbstractTableModel>
-#include <PokeFinderCore/Gen3/Profile3.hpp>
+#include <Core/Gen3/Profile3.hpp>
+#include <Models/TableModel.hpp>
 
-class Profile3Model : public QAbstractTableModel
+class Profile3Model : public TableModel<Profile3>
 {
     Q_OBJECT
 
-private:
-    vector<Profile3> model;
-
 public:
     Profile3Model(QObject *parent);
-    void setModel(vector<Profile3> profiles);
-    void addItem(Profile3 profile);
-    void updateProfile(Profile3 profile, int row);
-    int rowCount(const QModelIndex &parent = QModelIndex()) const;
-    int columnCount(const QModelIndex &parent = QModelIndex()) const;
-    QVariant data(const QModelIndex &index, int role) const;
-    QVariant headerData(int section, Qt::Orientation orientation, int role) const;
-    Profile3 getProfile(int index);
-    void removeProfile(int index);
+    int columnCount(const QModelIndex &parent = QModelIndex()) const override;
+    QVariant data(const QModelIndex &index, int role) const override;
+    QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
+
+private:
+    QStringList header =
+    {
+        tr("Profile Name"), tr("Version"), tr("Language"), tr("TID"), tr("SID"), tr("Dead Battery")
+    };
 
 };
 

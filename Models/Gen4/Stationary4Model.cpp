@@ -1,6 +1,6 @@
 /*
  * This file is part of PokéFinder
- * Copyright (C) 2017 by Admiral_Fish, bumba, and EzPzStreamz
+ * Copyright (C) 2017-2019 by Admiral_Fish, bumba, and EzPzStreamz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -18,30 +18,12 @@
  */
 
 #include "Stationary4Model.hpp"
+#include <Util/TableUtility.hpp>
 
-Stationary4Model::Stationary4Model(QObject *parent, Method method) : QAbstractTableModel(parent)
+Stationary4Model::Stationary4Model(QObject *parent, Method method) :
+    TableModel<Frame4>(parent)
 {
     this->method = method;
-}
-
-void Stationary4Model::setModel(vector<Frame4> frames)
-{
-    if (frames.empty())
-        return;
-    int i = rowCount();
-    emit beginInsertRows(QModelIndex(), i, i + frames.size() - 1);
-    model.insert(model.end(), frames.begin(), frames.end());
-    emit endInsertRows();
-}
-
-void Stationary4Model::clear()
-{
-    if (model.empty())
-        return;
-    emit beginRemoveRows(QModelIndex(), 0, rowCount() - 1);
-    model.clear();
-    model.shrink_to_fit();
-    emit endRemoveRows();
 }
 
 void Stationary4Model::setMethod(Method method)
@@ -50,173 +32,223 @@ void Stationary4Model::setMethod(Method method)
     emit headerDataChanged(Qt::Horizontal, 0, columnCount());
 }
 
-int Stationary4Model::rowCount(const QModelIndex &parent) const
+int Stationary4Model::columnCount(const QModelIndex & /*parent*/) const
 {
-    (void) parent;
-    return (int)model.size();
-}
-
-int Stationary4Model::columnCount(const QModelIndex &parent) const
-{
-    (void) parent;
     switch (method)
     {
-        case Method1:
-        case MethodJ:
+        case Method::Method1:
+        case Method::MethodK:
             return 16;
-        case MethodK:
-            return 17;
-        case WondercardIVs:
+        case Method::MethodJ:
+            return 15;
+        case Method::WondercardIVs:
             return 11;
+        default:
+            return 0;
     }
-    return 0;
 }
 
 QVariant Stationary4Model::data(const QModelIndex &index, int role) const
 {
     if (role == Qt::DisplayRole)
     {
-        int row = index.row();
-        int column = index.column();
-        Frame4 frame = model[row];
+        auto frame = model.at(index.row());
         switch (method)
         {
-            case Method1:
-                switch (column)
+            case Method::Method1:
+                switch (index.column())
                 {
                     case 0:
-                        return frame.frame;
+                        return frame.getFrame();
                     case 1:
-                        return frame.elmCall();
+                        return frame.getCall();
                     case 2:
                         return frame.chatotPitch();
                     case 3:
-                        return QString::number(frame.pid, 16).toUpper().rightJustified(8, '0');
+                        return QString::number(frame.getPID(), 16).toUpper().rightJustified(8, '0');
                     case 4:
-                        return frame.getShiny();
+                        return frame.getShinyString();
                     case 5:
-                        return frame.getNature();
+                        return frame.getNatureString();
                     case 6:
-                        return frame.ability;
+                        return frame.getAbility();
                     case 7:
-                        return frame.ivs[0];
+                        return frame.getIV(0);
                     case 8:
-                        return frame.ivs[1];
+                        return frame.getIV(1);
                     case 9:
-                        return frame.ivs[2];
+                        return frame.getIV(2);
                     case 10:
-                        return frame.ivs[3];
+                        return frame.getIV(3);
                     case 11:
-                        return frame.ivs[4];
+                        return frame.getIV(4);
                     case 12:
-                        return frame.ivs[5];
+                        return frame.getIV(5);
                     case 13:
-                        return frame.getPower();
-                    case 14:
-                        return frame.power;
-                    case 15:
-                        return frame.getGender();
-                }
-            case MethodJ:
-                switch (column)
-                {
-                    case 0:
-                        return frame.frame;
-                    case 1:
-                        return frame.occidentary;
-                    case 2:
-                        return frame.chatotPitch();
-                    case 3:
-                        return QString::number(frame.pid, 16).toUpper().rightJustified(8, '0');
-                    case 4:
-                        return frame.getShiny();
-                    case 5:
-                        return frame.getNature();
-                    case 6:
-                        return frame.ability;
-                    case 7:
-                        return frame.ivs[0];
-                    case 8:
-                        return frame.ivs[1];
-                    case 9:
-                        return frame.ivs[2];
-                    case 10:
-                        return frame.ivs[3];
-                    case 11:
-                        return frame.ivs[4];
-                    case 12:
-                        return frame.ivs[5];
-                    case 13:
-                        return frame.getPower();
-                    case 14:
-                        return frame.power;
-                    case 15:
-                        return frame.getGender();
-                }
-            case MethodK:
-                switch (column)
-                {
-                    case 0:
-                        return frame.frame;
-                    case 1:
-                        return frame.occidentary;
-                    case 2:
-                        return frame.elmCall();
-                    case 3:
-                        return frame.chatotPitch();
-                    case 4:
-                        return QString::number(frame.pid, 16).toUpper().rightJustified(8, '0');
-                    case 5:
-                        return frame.getShiny();
-                    case 6:
-                        return frame.getNature();
-                    case 7:
-                        return frame.ability;
-                    case 8:
-                        return frame.ivs[0];
-                    case 9:
-                        return frame.ivs[1];
-                    case 10:
-                        return frame.ivs[2];
-                    case 11:
-                        return frame.ivs[3];
-                    case 12:
-                        return frame.ivs[4];
-                    case 13:
-                        return frame.ivs[5];
+                        return frame.getPowerString();
                     case 14:
                         return frame.getPower();
                     case 15:
-                        return frame.power;
-                    case 16:
-                        return frame.getGender();
+                        return frame.getGenderString();
                 }
-            case WondercardIVs:
-                switch (column)
+            case Method::MethodJ:
+                switch (index.column())
                 {
                     case 0:
-                        return frame.frame;
+                        return frame.getFrame();
                     case 1:
-                        return frame.elmCall();
+                        return frame.chatotPitch();
+                    case 2:
+                        return QString::number(frame.getPID(), 16).toUpper().rightJustified(8, '0');
+                    case 3:
+                        return frame.getShinyString();
+                    case 4:
+                        return frame.getNatureString();
+                    case 5:
+                        return frame.getAbility();
+                    case 6:
+                        return frame.getIV(0);
+                    case 7:
+                        return frame.getIV(1);
+                    case 8:
+                        return frame.getIV(2);
+                    case 9:
+                        return frame.getIV(3);
+                    case 10:
+                        return frame.getIV(4);
+                    case 11:
+                        return frame.getIV(5);
+                    case 12:
+                        return frame.getPowerString();
+                    case 13:
+                        return frame.getPower();
+                    case 14:
+                        return frame.getGenderString();
+                }
+            case Method::MethodK:
+                switch (index.column())
+                {
+                    case 0:
+                        return frame.getFrame();
+                    case 1:
+                        return frame.getCall();
                     case 2:
                         return frame.chatotPitch();
                     case 3:
-                        return frame.ivs[0];
+                        return QString::number(frame.getPID(), 16).toUpper().rightJustified(8, '0');
                     case 4:
-                        return frame.ivs[1];
+                        return frame.getShinyString();
                     case 5:
-                        return frame.ivs[2];
+                        return frame.getNatureString();
                     case 6:
-                        return frame.ivs[3];
+                        return frame.getAbility();
                     case 7:
-                        return frame.ivs[4];
+                        return frame.getIV(0);
                     case 8:
-                        return frame.ivs[5];
+                        return frame.getIV(1);
                     case 9:
-                        return frame.getPower();
+                        return frame.getIV(2);
                     case 10:
-                        return frame.power;
+                        return frame.getIV(3);
+                    case 11:
+                        return frame.getIV(4);
+                    case 12:
+                        return frame.getIV(5);
+                    case 13:
+                        return frame.getPowerString();
+                    case 14:
+                        return frame.getPower();
+                    case 15:
+                        return frame.getGenderString();
                 }
+            case Method::WondercardIVs:
+                switch (index.column())
+                {
+                    case 0:
+                        return frame.getFrame();
+                    case 1:
+                        return frame.getCall();
+                    case 2:
+                        return frame.chatotPitch();
+                    case 3:
+                        return frame.getIV(0);
+                    case 4:
+                        return frame.getIV(1);
+                    case 5:
+                        return frame.getIV(2);
+                    case 6:
+                        return frame.getIV(3);
+                    case 7:
+                        return frame.getIV(4);
+                    case 8:
+                        return frame.getIV(5);
+                    case 9:
+                        return frame.getPowerString();
+                    case 10:
+                        return frame.getPower();
+                }
+            default:
+                break;
+        }
+    }
+    else if (role == Qt::FontRole)
+    {
+        auto frame = model.at(index.row());
+        switch (method)
+        {
+            case Method::Method1:
+            case Method::MethodJ:
+                switch (index.column())
+                {
+                    case 7:
+                        return TableUtility::getBold(frame.getIV(0));
+                    case 8:
+                        return TableUtility::getBold(frame.getIV(1));
+                    case 9:
+                        return TableUtility::getBold(frame.getIV(2));
+                    case 10:
+                        return TableUtility::getBold(frame.getIV(3));
+                    case 11:
+                        return TableUtility::getBold(frame.getIV(4));
+                    case 12:
+                        return TableUtility::getBold(frame.getIV(5));
+                }
+                break;
+            case Method::MethodK:
+                switch (index.column())
+                {
+                    case 8:
+                        return TableUtility::getBold(frame.getIV(0));
+                    case 9:
+                        return TableUtility::getBold(frame.getIV(1));
+                    case 10:
+                        return TableUtility::getBold(frame.getIV(2));
+                    case 11:
+                        return TableUtility::getBold(frame.getIV(3));
+                    case 12:
+                        return TableUtility::getBold(frame.getIV(4));
+                    case 13:
+                        return TableUtility::getBold(frame.getIV(5));
+                }
+                break;
+            case Method::WondercardIVs:
+                switch (index.column())
+                {
+                    case 3:
+                        return TableUtility::getBold(frame.getIV(0));
+                    case 4:
+                        return TableUtility::getBold(frame.getIV(1));
+                    case 5:
+                        return TableUtility::getBold(frame.getIV(2));
+                    case 6:
+                        return TableUtility::getBold(frame.getIV(3));
+                    case 7:
+                        return TableUtility::getBold(frame.getIV(4));
+                    case 8:
+                        return TableUtility::getBold(frame.getIV(5));
+                }
+            default:
+                break;
         }
     }
     return QVariant();
@@ -224,149 +256,20 @@ QVariant Stationary4Model::data(const QModelIndex &index, int role) const
 
 QVariant Stationary4Model::headerData(int section, Qt::Orientation orientation, int role) const
 {
-    if (role == Qt::DisplayRole)
+    if (role == Qt::DisplayRole && orientation == Qt::Horizontal)
     {
-        if (orientation == Qt::Horizontal)
+        switch (method)
         {
-            switch (method)
-            {
-                case Method1:
-                    switch (section)
-                    {
-                        case 0:
-                            return tr("Frame");
-                        case 1:
-                            return tr("Elm");
-                        case 2:
-                            return tr("Chatot Pitch");
-                        case 3:
-                            return tr("PID");
-                        case 4:
-                            return "!!!";
-                        case 5:
-                            return tr("Nature");
-                        case 6:
-                            return tr("Ability");
-                        case 7:
-                            return tr("HP");
-                        case 8:
-                            return tr("Atk");
-                        case 9:
-                            return tr("Def");
-                        case 10:
-                            return tr("SpA");
-                        case 11:
-                            return tr("SpD");
-                        case 12:
-                            return tr("Spe");
-                        case 13:
-                            return tr("Hidden");
-                        case 14:
-                            return tr("Power");
-                        case 15:
-                            return tr("Gender");
-                    }
-                case MethodJ:
-                    switch (section)
-                    {
-                        case 0:
-                            return tr("Frame");
-                        case 1:
-                            return tr("Occidentary");
-                        case 2:
-                            return tr("Chatot Pitch");
-                        case 3:
-                            return tr("PID");
-                        case 4:
-                            return "!!!";
-                        case 5:
-                            return tr("Nature");
-                        case 6:
-                            return tr("Ability");
-                        case 7:
-                            return tr("HP");
-                        case 8:
-                            return tr("Atk");
-                        case 9:
-                            return tr("Def");
-                        case 10:
-                            return tr("SpA");
-                        case 11:
-                            return tr("SpD");
-                        case 12:
-                            return tr("Spe");
-                        case 13:
-                            return tr("Hidden");
-                        case 14:
-                            return tr("Power");
-                        case 15:
-                            return tr("Gender");
-                    }
-                case MethodK:
-                    switch (section)
-                    {
-                        case 0:
-                            return tr("Frame");
-                        case 1:
-                            return tr("Occidentary");
-                        case 2:
-                            return tr("Elm");
-                        case 3:
-                            return tr("Chatot Pitch");
-                        case 4:
-                            return tr("PID");
-                        case 5:
-                            return "!!!";
-                        case 6:
-                            return tr("Nature");
-                        case 7:
-                            return tr("Ability");
-                        case 8:
-                            return tr("HP");
-                        case 9:
-                            return tr("Atk");
-                        case 10:
-                            return tr("Def");
-                        case 11:
-                            return tr("SpA");
-                        case 12:
-                            return tr("SpD");
-                        case 13:
-                            return tr("Spe");
-                        case 14:
-                            return tr("Hidden");
-                        case 15:
-                            return tr("Power");
-                        case 16:
-                            return tr("Gender");
-                    }
-                case WondercardIVs:
-                    switch (section)
-                    {
-                        case 0:
-                            return tr("Frame");
-                        case 1:
-                            return tr("Elm");
-                        case 2:
-                            return tr("Chatot Pitch");
-                        case 3:
-                            return tr("HP");
-                        case 4:
-                            return tr("Atk");
-                        case 5:
-                            return tr("Def");
-                        case 6:
-                            return tr("SpA");
-                        case 7:
-                            return tr("SpD");
-                        case 8:
-                            return tr("Spe");
-                        case 9:
-                            return tr("Hidden");
-                        case 10:
-                            return tr("Power");
-                    }
-            }
+            case Method::Method1:
+                return header1.at(section);
+            case Method::MethodJ:
+                return header2.at(section);
+            case Method::MethodK:
+                return header3.at(section);
+            case Method::WondercardIVs:
+                return header4.at(section);
+            default:
+                break;
         }
     }
     return QVariant();

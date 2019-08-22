@@ -1,6 +1,6 @@
 /*
  * This file is part of PokéFinder
- * Copyright (C) 2017 by Admiral_Fish, bumba, and EzPzStreamz
+ * Copyright (C) 2017-2019 by Admiral_Fish, bumba, and EzPzStreamz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,29 +20,43 @@
 #ifndef SEARCHER4MODEL_HPP
 #define SEARCHER4MODEL_HPP
 
-#include <QAbstractTableModel>
-#include <PokeFinderCore/Gen4/Frame4.hpp>
-#include <PokeFinderCore/Objects/Method.hpp>
+#include <Core/Gen4/Frame4.hpp>
+#include <Models/TableModel.hpp>
 
-class Searcher4Model : public QAbstractTableModel
+class Searcher4Model : public TableModel<Frame4>
 {
     Q_OBJECT
 
-private:
-    vector<Frame4> model;
-    Method method;
-
 public:
-    Searcher4Model(QObject *parent, Method method);
-    void setModel(vector<Frame4> frames);
-    void addItems(vector<Frame4> frames);
-    void clear();
+    Searcher4Model(QObject *parent, Method method, bool stationary = false);
     void setMethod(Method method);
-    void sort(int column, Qt::SortOrder order);
-    int rowCount(const QModelIndex &parent = QModelIndex()) const;
-    int columnCount(const QModelIndex &parent = QModelIndex()) const;
-    QVariant data(const QModelIndex &index, int role) const;
-    QVariant headerData(int section, Qt::Orientation orientation, int role) const;
+    void sort(int column, Qt::SortOrder order) override;
+    int columnCount(const QModelIndex &parent = QModelIndex()) const override;
+    QVariant data(const QModelIndex &index, int role) const override;
+    QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
+
+private:
+    Method method;
+    bool stationary;
+    QStringList header1 =
+    {
+        tr("Seed"), tr("Frame"), tr("PID"), "!!!", tr("Nature"), tr("Ability"), tr("HP"),
+        tr("Atk"), tr("Def"), tr("SpA"), tr("SpD"), tr("Spe"), tr("Hidden"), tr("Power"), tr("Gender")
+    };
+    QStringList header2 =
+    {
+        tr("Seed"), tr("Frame"), tr("HP"), tr("Atk"), tr("Def"), tr("SpA"), tr("SpD"), tr("Spe"), tr("Hidden"), tr("Power")
+    };
+    QStringList header3 =
+    {
+        tr("Seed"), tr("Frame"), tr("Lead"), tr("PID"), tr("Slot"), tr("Level"), "!!!", tr("Nature"), tr("Ability"),
+        tr("HP"), tr("Atk"), tr("Def"), tr("SpA"), tr("SpD"), tr("Spe"), tr("Hidden"), tr("Power"), tr("Gender")
+    };
+    QStringList header4 =
+    {
+        tr("Seed"), tr("Frame"), tr("Lead"), tr("PID"), "!!!", tr("Nature"), tr("Ability"), tr("HP"),
+        tr("Atk"), tr("Def"), tr("SpA"), tr("SpD"), tr("Spe"), tr("Hidden"), tr("Power"), tr("Gender")
+    };
 
 };
 

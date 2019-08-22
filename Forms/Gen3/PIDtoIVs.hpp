@@ -1,6 +1,6 @@
 /*
  * This file is part of PokéFinder
- * Copyright (C) 2017 by Admiral_Fish, bumba, and EzPzStreamz
+ * Copyright (C) 2017-2019 by Admiral_Fish, bumba, and EzPzStreamz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,64 +20,47 @@
 #ifndef PIDTOIVS_HPP
 #define PIDTOIVS_HPP
 
-#include <QMainWindow>
-#include <QStandardItem>
-#include <QStandardItemModel>
-#include <QList>
-#include <PokeFinderCore/RNG/RNGCache.hpp>
-#include <PokeFinderCore/Objects/Method.hpp>
-#include <PokeFinderCore/RNG/RNGEuclidean.hpp>
-#include <PokeFinderCore/RNG/LCRNG.hpp>
 #include <QMenu>
-#include <QAction>
-#include <QModelIndex>
-#include <QClipboard>
-#include <QStringList>
+#include <QStandardItemModel>
+#include <Core/Util/Global.hpp>
 
-typedef uint32_t u32;
-
-using std::vector;
 namespace Ui
 {
     class PIDtoIVs;
 }
 
-class PIDtoIVs : public QMainWindow
+class PIDtoIVs : public QWidget
 {
     Q_OBJECT
 
-protected:
-    void changeEvent(QEvent *);
+signals:
+    void moveResultsToStationary(QString, QString, u8, u8, u8, u8, u8, u8);
 
 public:
-    explicit PIDtoIVs(QWidget *parent = 0);
-    ~PIDtoIVs();
-
-signals:
-    void moveResultsToStationary(QString, QString, u32, u32, u32, u32, u32, u32);
-
-private slots:
-    void on_pushButtonGenerate_clicked();
-    void on_tabePIDToIV_customContextMenuRequested(const QPoint &pos);
-    void copySeed();
+    explicit PIDtoIVs(QWidget *parent = nullptr);
+    ~PIDtoIVs() override;
 
 private:
     Ui::PIDtoIVs *ui;
-    QStandardItemModel *model = new QStandardItemModel(this);
-    QMenu *contextMenu = new QMenu();
-    QModelIndex lastIndex;
-    QModelIndex targetFrame;
+    QStandardItemModel *model{};
+    QMenu *contextMenu{};
 
     void setupModels();
     void calcFromPID(u32 pid);
     void calcMethod124(u32 pid);
     void calcMethodXD(u32 pid);
-    QString calcIVs1(u32 iv1);
-    QString calcIVs2(u32 iv1);
-    QString calcIVs4(u32 iv1);
-    QString calcIVsXD(u32 iv1, u32 iv2);
+    void calcMethodChannel(u32 pid);
+    QString calcIVs(u32 iv1, int num);
+    QString calcIVsXD(u16 iv1, u16 iv2);
+    QString calcIVsChannel(u32 iv1);
     void addSeed(u32 seed, u32 iv1);
-    void addSeedGC(u32 seed, u32 iv1, u32 iv2);
+    void addSeedGC(u32 seed, u16 iv1, u16 iv2);
+    void addSeedChannel(u32 seed, u32 iv1);
+
+private slots:
+    void on_pushButtonGenerate_clicked();
+    void on_tableView_customContextMenuRequested(const QPoint &pos);
+    void copySeed();
 
 };
 

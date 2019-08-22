@@ -6,81 +6,22 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>463</width>
+    <width>460</width>
     <height>390</height>
    </rect>
   </property>
-  <property name="sizePolicy">
-   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-    <horstretch>0</horstretch>
-    <verstretch>0</verstretch>
-   </sizepolicy>
-  </property>
   <property name="minimumSize">
    <size>
-    <width>463</width>
-    <height>390</height>
-   </size>
-  </property>
-  <property name="maximumSize">
-   <size>
-    <width>463</width>
+    <width>460</width>
     <height>390</height>
    </size>
   </property>
   <property name="windowTitle">
-   <string notr="true">PokéFinder 1.3.1</string>
+   <string notr="true">PokéFinder 2.4.1</string>
   </property>
   <property name="windowIcon">
    <iconset>
     <normaloff>../pokefinder.ico</normaloff>../pokefinder.ico</iconset>
-  </property>
-  <property name="styleSheet">
-   <string notr="true">QGroupBox {
-	background-color: #274050;
-	border-radius: 10px;
-	margin-top: 7px;
-	font-family: &quot;Myriad Pro&quot;, Montserrat;
-	font-weight: 500;
-}
-
-.QGroupBox * {
-	font-family: &quot;Myriad Pro&quot;, Montserrat;
-	font-weight: 500;
-}
-
-QGroupBox::title {
-	subcontrol-origin: margin;
-	left: 20px;
-	padding: 3px 5px 3px 5px;
-	background-color: #969F91;
-	border-radius: 5px;
-}
-
-QPushButton {
-	border: none;
-	border-radius: 6px;
-	color: white;
-	background-color: DodgerBlue;
-}
-
-QMenuBar {
-	color: white;
-	background-color: #1D303C;
-	font-family: &quot;Myriad Pro&quot;, Montserrat;
-	font-weight: 500;
-}
-
-QMenu {
-	color: white;
-	background-color: #1D303C;
-	font-family: &quot;Myriad Pro&quot;, Montserrat;
-	font-weight: 500;
-}
-
-QMenu::item::selected {
-	background: #003941;
-}</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
@@ -89,82 +30,43 @@ QMenu::item::selected {
       <property name="title">
        <string>Gen 3</string>
       </property>
-      <widget class="QPushButton" name="pushButtonStationary3">
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>30</y>
-         <width>191</width>
-         <height>23</height>
-        </rect>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>0</width>
-         <height>23</height>
-        </size>
-       </property>
-       <property name="text">
-        <string>Stationary</string>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="pushButtonWild3">
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>60</y>
-         <width>191</width>
-         <height>23</height>
-        </rect>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>0</width>
-         <height>23</height>
-        </size>
-       </property>
-       <property name="text">
-        <string>Wild</string>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="pushButtonEgg3">
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>90</y>
-         <width>191</width>
-         <height>23</height>
-        </rect>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>0</width>
-         <height>23</height>
-        </size>
-       </property>
-       <property name="text">
-        <string>Egg</string>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="pushButtonIDs3">
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>120</y>
-         <width>191</width>
-         <height>23</height>
-        </rect>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>0</width>
-         <height>23</height>
-        </size>
-       </property>
-       <property name="text">
-        <string>IDs</string>
-       </property>
-      </widget>
+      <layout class="QGridLayout" name="gridLayout_2">
+       <item row="0" column="0">
+        <widget class="QPushButton" name="pushButtonStationary3">
+         <property name="text">
+          <string>Stationary</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QPushButton" name="pushButtonWild3">
+         <property name="text">
+          <string>Wild</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QPushButton" name="pushButtonGameCube">
+         <property name="text">
+          <string>GameCube</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <widget class="QPushButton" name="pushButtonEgg3">
+         <property name="text">
+          <string>Egg</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="0">
+        <widget class="QPushButton" name="pushButtonIDs3">
+         <property name="text">
+          <string>TID/SID</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </widget>
     </item>
     <item row="0" column="1">
@@ -172,76 +74,36 @@ QMenu::item::selected {
       <property name="title">
        <string>Gen 4</string>
       </property>
-      <widget class="QPushButton" name="pushButtonStationary4">
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>30</y>
-         <width>191</width>
-         <height>23</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Stationary</string>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="pushButtonWild4">
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>60</y>
-         <width>191</width>
-         <height>23</height>
-        </rect>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>0</width>
-         <height>23</height>
-        </size>
-       </property>
-       <property name="text">
-        <string>Wild</string>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="pushButtonEgg4">
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>90</y>
-         <width>191</width>
-         <height>23</height>
-        </rect>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>0</width>
-         <height>23</height>
-        </size>
-       </property>
-       <property name="text">
-        <string>Egg</string>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="pushButtonIDs4">
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>120</y>
-         <width>191</width>
-         <height>23</height>
-        </rect>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>0</width>
-         <height>23</height>
-        </size>
-       </property>
-       <property name="text">
-        <string>IDs</string>
-       </property>
-      </widget>
+      <layout class="QGridLayout" name="gridLayout_3">
+       <item row="0" column="0">
+        <widget class="QPushButton" name="pushButtonStationary4">
+         <property name="text">
+          <string>Stationary</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QPushButton" name="pushButtonWild4">
+         <property name="text">
+          <string>Wild</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QPushButton" name="pushButtonEgg4">
+         <property name="text">
+          <string>Egg</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <widget class="QPushButton" name="pushButtonIDs4">
+         <property name="text">
+          <string>TID/SID</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </widget>
     </item>
    </layout>
@@ -251,34 +113,69 @@ QMenu::item::selected {
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>463</width>
-     <height>20</height>
+     <width>460</width>
+     <height>21</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menuLanguage">
-    <property name="title">
-     <string>Language</string>
-    </property>
-   </widget>
    <widget class="QMenu" name="menuTools">
     <property name="title">
      <string>Tools</string>
     </property>
+    <addaction name="actionEncounter_Lookup"/>
+    <addaction name="actionIV_Calculator"/>
     <addaction name="actionResearcher"/>
    </widget>
    <widget class="QMenu" name="menuGen3Tools">
     <property name="title">
      <string>Gen 3 Tools</string>
     </property>
-    <addaction name="action16BitSeedtoTime"/>
-    <addaction name="actionJirachiGeneration"/>
-    <addaction name="actionPokeSpot"/>
-    <addaction name="actionIVtoPID"/>
     <addaction name="actionGameCubeRTC"/>
+    <addaction name="actionGameCube_Seed_Finder"/>
+    <addaction name="actionIVtoPID3"/>
+    <addaction name="actionJirachiPattern"/>
     <addaction name="actionPIDtoIV"/>
+    <addaction name="actionPokeSpot"/>
+    <addaction name="actionSeedtoTime3"/>
+    <addaction name="actionSpinda_Painter"/>
    </widget>
-   <addaction name="menuLanguage"/>
+   <widget class="QMenu" name="menuGen4Tools">
+    <property name="title">
+     <string>Gen 4 Tools</string>
+    </property>
+    <addaction name="actionIVtoPID4"/>
+    <addaction name="actionSeedtoTime4"/>
+    <addaction name="actionSID_from_Chained_Shiny"/>
+   </widget>
+   <widget class="QMenu" name="menuSettings">
+    <property name="title">
+     <string>Settings</string>
+    </property>
+    <widget class="QMenu" name="menuLanguage">
+     <property name="title">
+      <string>Language</string>
+     </property>
+     <addaction name="actionGerman"/>
+     <addaction name="actionEnglish"/>
+     <addaction name="actionSpanish"/>
+     <addaction name="actionFrench"/>
+     <addaction name="actionItalian"/>
+     <addaction name="actionJapanese"/>
+     <addaction name="actionKorean"/>
+     <addaction name="actionChinese"/>
+    </widget>
+    <widget class="QMenu" name="menuStyle">
+     <property name="title">
+      <string>Style</string>
+     </property>
+     <addaction name="actionDark"/>
+     <addaction name="actionLight"/>
+    </widget>
+    <addaction name="menuLanguage"/>
+    <addaction name="menuStyle"/>
+   </widget>
    <addaction name="menuGen3Tools"/>
+   <addaction name="menuGen4Tools"/>
+   <addaction name="menuSettings"/>
    <addaction name="menuTools"/>
   </widget>
   <action name="actionResearcher">
@@ -286,14 +183,14 @@ QMenu::item::selected {
     <string>Researcher</string>
    </property>
   </action>
-  <action name="action16BitSeedtoTime">
+  <action name="actionSeedtoTime3">
    <property name="text">
-    <string>16-Bit Seed to Time</string>
+    <string>Seed to Time</string>
    </property>
   </action>
-  <action name="actionJirachiGeneration">
+  <action name="actionJirachiPattern">
    <property name="text">
-    <string>Jirachi Generation</string>
+    <string>Jirachi Pattern</string>
    </property>
   </action>
   <action name="actionPokeSpot">
@@ -301,7 +198,7 @@ QMenu::item::selected {
     <string>PokeSpot</string>
    </property>
   </action>
-  <action name="actionIVtoPID">
+  <action name="actionIVtoPID3">
    <property name="text">
     <string>IV to PID</string>
    </property>
@@ -314,6 +211,121 @@ QMenu::item::selected {
   <action name="actionPIDtoIV">
    <property name="text">
     <string>PID to IV</string>
+   </property>
+  </action>
+  <action name="actionSeedtoTime4">
+   <property name="text">
+    <string>Seed to Time</string>
+   </property>
+  </action>
+  <action name="actionIVtoPID4">
+   <property name="text">
+    <string>IV to PID</string>
+   </property>
+  </action>
+  <action name="actionDark">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Dark</string>
+   </property>
+  </action>
+  <action name="actionLight">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Light</string>
+   </property>
+  </action>
+  <action name="actionGerman">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>German</string>
+   </property>
+  </action>
+  <action name="actionEnglish">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>English</string>
+   </property>
+  </action>
+  <action name="actionSpanish">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Spanish</string>
+   </property>
+  </action>
+  <action name="actionFrench">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>French</string>
+   </property>
+  </action>
+  <action name="actionItalian">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Italian</string>
+   </property>
+  </action>
+  <action name="actionJapanese">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Japanese</string>
+   </property>
+  </action>
+  <action name="actionKorean">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Korean</string>
+   </property>
+  </action>
+  <action name="actionChinese">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Chinese</string>
+   </property>
+  </action>
+  <action name="actionSID_from_Chained_Shiny">
+   <property name="text">
+    <string>SID from Chained Shiny</string>
+   </property>
+  </action>
+  <action name="actionIV_Calculator">
+   <property name="text">
+    <string>IV Calculator</string>
+   </property>
+  </action>
+  <action name="actionSpinda_Painter">
+   <property name="text">
+    <string>Spinda Painter</string>
+   </property>
+  </action>
+  <action name="actionEncounter_Lookup">
+   <property name="text">
+    <string>Encounter Lookup</string>
+   </property>
+  </action>
+  <action name="actionGameCube_Seed_Finder">
+   <property name="text">
+    <string>GameCube Seed Finder</string>
    </property>
   </action>
  </widget>

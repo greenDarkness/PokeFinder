@@ -1,6 +1,6 @@
 /*
  * This file is part of PokéFinder
- * Copyright (C) 2017 by Admiral_Fish, bumba, and EzPzStreamz
+ * Copyright (C) 2017-2019 by Admiral_Fish, bumba, and EzPzStreamz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,46 +20,35 @@
 #ifndef PROFILEMANAGER4_HPP
 #define PROFILEMANAGER4_HPP
 
-#include <QMainWindow>
-#include <Forms/Gen4/ProfileManager4NewEdit.hpp>
-#include <PokeFinderCore/Gen4/Profile4.hpp>
+#include <QWidget>
 #include <Models/Gen4/Profile4Model.hpp>
-
-using std::vector;
-typedef uint32_t u32;
 
 namespace Ui
 {
     class ProfileManager4;
 }
 
-class ProfileManager4 : public QMainWindow
+class ProfileManager4 : public QWidget
 {
     Q_OBJECT
-
-protected:
-    void changeEvent(QEvent *);
 
 signals:
     void updateProfiles();
 
+public:
+    explicit ProfileManager4(QWidget *parent = nullptr);
+    ~ProfileManager4() override;
+
 private:
     Ui::ProfileManager4 *ui;
-    Profile4Model *model = new Profile4Model(this);
+    Profile4Model *model{};
 
     void setupModels();
 
 private slots:
     void on_pushButtonNew_clicked();
-    void on_pushButtonOk_clicked();
-    void registerProfile(Profile4 profile);
-    void editProfile(Profile4 profile, Profile4 original);
     void on_pushButtonEdit_clicked();
     void on_pushButtonDelete_clicked();
-
-public:
-    explicit ProfileManager4(QWidget *parent = 0);
-    ~ProfileManager4();
 
 };
 

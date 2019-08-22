@@ -1,6 +1,6 @@
 /*
  * This file is part of PokéFinder
- * Copyright (C) 2017 by Admiral_Fish, bumba, and EzPzStreamz
+ * Copyright (C) 2017-2019 by Admiral_Fish, bumba, and EzPzStreamz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,43 +20,31 @@
 #ifndef POKESPOT_HPP
 #define POKESPOT_HPP
 
-#include <QMainWindow>
-#include <QSettings>
-#include <PokeFinderCore/RNG/LCRNG.hpp>
+#include <QWidget>
 #include <Models/Gen3/PokeSpotModel.hpp>
-#include <PokeFinderCore/Objects/Nature.hpp>
-#include <PokeFinderCore/Gen3/Frame3.hpp>
-#include <PokeFinderCore/Objects/FrameCompare.hpp>
 
 namespace Ui
 {
     class PokeSpot;
 }
 
-class PokeSpot : public QMainWindow
+class PokeSpot : public QWidget
 {
     Q_OBJECT
 
-protected:
-    void changeEvent(QEvent *);
+public:
+    explicit PokeSpot(QWidget *parent = nullptr);
+    ~PokeSpot() override;
 
 private:
     Ui::PokeSpot *ui;
-    PokeSpotModel *model = new PokeSpotModel(this);
-    LCRNG rng = XDRNG(0);
-    vector<u32> rngList;
+    PokeSpotModel *model{};
 
     void setupModels();
 
 private slots:
-    void on_pushButtonAnyAbility_clicked();
-    void on_pushButtonAnyNature_clicked();
-    void on_pushButtonAnySpotType_clicked();
     void on_pushButtonGenerate_clicked();
-
-public:
-    explicit PokeSpot(QWidget *parent = 0);
-    ~PokeSpot();
+    void on_pushButtonAnyAbility_clicked();
 
 };
 

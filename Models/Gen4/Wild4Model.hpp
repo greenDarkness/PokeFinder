@@ -1,6 +1,6 @@
 /*
  * This file is part of PokéFinder
- * Copyright (C) 2017 by Admiral_Fish, bumba, and EzPzStreamz
+ * Copyright (C) 2017-2019 by Admiral_Fish, bumba, and EzPzStreamz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,27 +20,38 @@
 #ifndef WILD4MODEL_HPP
 #define WILD4MODEL_HPP
 
-#include <QAbstractTableModel>
-#include <PokeFinderCore/Objects/Method.hpp>
-#include <PokeFinderCore/Gen4/Frame4.hpp>
+#include <Core/Gen4/Frame4.hpp>
+#include <Models/TableModel.hpp>
 
-class Wild4Model : public QAbstractTableModel
+class Wild4Model : public TableModel<Frame4>
 {
     Q_OBJECT
 
-private:
-    vector<Frame4> model;
-    Method method;
-
 public:
     Wild4Model(QObject *parent, Method method);
-    void setModel(vector<Frame4> frames);
-    void clear();
     void setMethod(Method method);
-    int rowCount(const QModelIndex &parent = QModelIndex()) const;
-    int columnCount(const QModelIndex &parent = QModelIndex()) const;
-    QVariant data(const QModelIndex &index, int role) const;
-    QVariant headerData(int section, Qt::Orientation orientation, int role) const;
+    int columnCount(const QModelIndex &parent = QModelIndex()) const override;
+    QVariant data(const QModelIndex &index, int role) const override;
+    QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
+
+private:
+    Method method;
+
+    QStringList header1 =
+    {
+        tr("Frame"), tr("Occidentary"), tr("Chatot"), tr("Slot"), tr("Level"), tr("PID"), "!!!", tr("Nature"), tr("Ability"),
+        tr("HP"), tr("Atk"), tr("Def"), tr("SpA"), tr("SpD"), tr("Spe"), tr("Hidden"), tr("Power"), tr("Gender")
+    };
+    QStringList header2 =
+    {
+        tr("Frame"), tr("Occidentary"), tr("Call"), tr("Chatot"), tr("Slot"), tr("Level"), tr("PID"), "!!!", tr("Nature"),
+        tr("Ability"), tr("HP"), tr("Atk"), tr("Def"), tr("SpA"), tr("SpD"), tr("Spe"), tr("Hidden"), tr("Power"), tr("Gender")
+    };
+    QStringList header3 =
+    {
+        tr("Frame"), tr("Chatot"), tr("PID"), "!!!", tr("Nature"), tr("Ability"), tr("HP"), tr("Atk"),
+        tr("Def"), tr("SpA"), tr("SpD"), tr("Spe"), tr("Hidden"), tr("Power"), tr("Gender")
+    };
 
 };
 
